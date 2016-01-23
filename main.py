@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import voronizator
 import polygon
+import scene
 
-voronoi = voronizator.Voronizator()
-
+scene = scene.Scene()
 maxEmptyLen = 0.1
 poly1 = polygon.Polygon(vertexes=np.array([[0.1,0.1],[0.2,0.3],[0.25,0.45],[0.15,0.4]]), maxEmptyLen=maxEmptyLen)
 
@@ -16,22 +16,24 @@ ax = fig.gca()
 Vs = np.array([-0.5,-0.5])
 Ve = np.array([1.,1.])
 
-voronoi.addPolygon(poly1)
-#voronoi.addPolygon(poly2)
-#voronoi.addPolygon(poly3)
+scene.addPolygon(poly1)
+#scene.addPolygon(poly2)
+#scene.addPolygon(poly3)
 
-voronoi.addBoundingBox([-1.,-1.], [2.,2.], maxEmptyLen=.2)
-voronoi.setPolygonsSites()
+scene.addBoundingBox([-1.,-1.], [2.,2.], maxEmptyLen=.2)
+
+voronoi = voronizator.Voronizator(scene)
+
 voronoi.makeVoroGraph()
-voronoi.calculateShortestPath(Vs, Ve, attachMode='near', minEdgeLen=0.05, maxEdgeLen=0.1)
+path = voronoi.createShortestPath(Vs, Ve, attachMode='near', minEdgeLen=0.05, maxEdgeLen=0.1)
 #voronoi.calculateShortestPath(Vs, Ve, 'all')
 
 voronoi.plotSites(ax)
-voronoi.plotPolygons(ax)
+scene.plot(ax)
 #voronoi.plotGraph(ax, edges=False, labels=True)
 #voronoi.plotGraph(ax, pathExtremes=True)
 #voronoi.plotGraph(ax)
-voronoi.plotShortestPath(ax,plotInnerVertexes=True,plotSpline=False)
+path.plot(ax,plotInnerVertexes=True,plotSpline=False)
 
 ax.set_xlim(-1., 2.)
 ax.set_ylim(-1., 2.)

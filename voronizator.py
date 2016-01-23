@@ -5,38 +5,15 @@ import scipy.spatial
 import networkx as nx
 import numpy.linalg
 import polygon
-import smoothener
+import path
 
 class Voronizator:
-    def __init__(self, sites=np.array([])):
-        self._smoothener = smoothener.Smoothener()
-        self._sites = sites
-        self._shortestPath = np.array([])
+    def __init__(self, scene):
         self._graph = nx.Graph()
-        self._polygons = []
         self._pathStart = np.array([])
         self._pathEnd = np.array([])
-
-    def setCustomSites(self, sites):
-        self._sites = sites
-        
-    def setRandomSites(self, number, seed=None):
-        if seed != None:
-            np.random.seed(0)
-        self._sites = sp.rand(number,3)
-
-    def addPolygon(self, polygon):
-        self._polygons.append(polygon)
-
-    def addBoundingBox(self, a, b, maxEmptyLen=1, invisible=True):
-        self._polygons.append(polygon.Polygon(vertexes=np.array([a,[a[0], b[1]],b,[b[1], a[0]]]), invisible=invisible, maxEmptyLen=maxEmptyLen))
-
-    def setPolygonsSites(self):
-        sites = []
-        for polygon in self._polygons:
-            sites.extend(polygon.allPoints)
-
-        self._sites = np.array(sites)
+        self._scene = scene
+        self._sites = scene.allPoints()
         
     def makeVoroGraph(self, prune=True):
         vor = sp.spatial.Voronoi(self._sites)
@@ -46,14 +23,14 @@ class Voronizator:
                 if (ridge[i] != -1) and (ridge[(i+1)%len(ridge)] != -1):
                     a = vorVer[ridge[i]]
                     b = vorVer[ridge[(i+1)%len(ridge)]]
-                    if (not prune) or (not self._segmentIntersectPolygons(a,b)):
+                    if (not prune) or (not self._scene.segmentIntersect(a,b)):
                         self._graph.add_edge(tuple(a), tuple(b), weight=np.linalg.norm(a-b))
         i = 0
         for node in self._graph.nodes():
             self._graph.node[node]['index'] = i
             i = i + 1
 
-    def calculateShortestPath(self, start, end, attachMode='near', minEdgeLen=0., maxEdgeLen=0., prune=True):
+    def createShortestPath(self, start, end, attachMode='near', minEdgeLen=0., maxEdgeLen=0., prune=True):
         if attachMode=='near':
             self._attachToGraphNear(start, end, prune)
         elif attachMode=='all':
@@ -70,38 +47,30 @@ class Voronizator:
             self._graph.node[tuple(end)]['index'] = 'e'
 
         try:
-            length,path=nx.bidirectional_dijkstra(self._graph, tuple(start), tuple(end))
+            length,shortestPath=nx.bidirectional_dijkstra(self._graph, tuple(start), tuple(end))
         except (nx.NetworkXNoPath, nx.NetworkXError):
-            path = []
+            shortestPath = []
 
         if (minEdgeLen > 0.) or (maxEdgeLen > 0.):
             i = 1
-            while (i<len(path)):
-                a = np.array(path[i-1])
-                b = np.array(path[i])
+            while (i<len(shortestPath)):
+                a = np.array(shortestPath[i-1])
+                b = np.array(shortestPath[i])
                 if (np.linalg.norm(b-a) < minEdgeLen):
-                    path[i] = (0.5*a+0.5*b).tolist()
-                    path.pop(i-1)
+                    shortestPath[i] = (0.5*a+0.5*b).tolist()
+                    shortestPath.pop(i-1)
                     i=max(1, i-1)
                 elif (np.linalg.norm(b-a) > maxEdgeLen):
-                    path.insert(i, (0.5*a+0.5*b).tolist())
+                    shortestPath.insert(i, (0.5*a+0.5*b).tolist())
                 else:
                     i = i+1
-                
-        self._shortestPath = np.array(path)
+
+        return path.Path(np.array(shortestPath))
 
     def plotSites(self, plotter):
         if self._sites.size > 0:
             plotter.plot(self._sites[:,0], self._sites[:,1], 'o')
-
-    def plotPolygons(self, plotter):
-        for poly in self._polygons:
-            poly.plot(plotter)
             
-    def plotShortestPath(self, plotter, plotStartEnd=True, plotInnerVertexes=False, plotEdges=True, plotSpline=True):
-        if self._shortestPath.size > 0:
-            self._smoothener.plot(self._shortestPath, plotter, plotStartEnd, plotInnerVertexes, plotEdges, plotSpline)
-
     def plotGraph(self, plotter, vertexes=True, edges=True, labels=False, pathExtremes=False, showOnly=[]):
         if vertexes:
             for ver in self._graph.nodes():
@@ -121,12 +90,6 @@ class Voronizator:
                     if pathExtremes==True or (edge[0]!=tuple(self._pathStart) and edge[0]!=tuple(self._pathEnd) and edge[1]!=tuple(self._pathStart) and edge[1]!=tuple(self._pathEnd)):
                         plotter.plot([edge[0][0], edge[1][0]], [edge[0][1], edge[1][1]], 'k--')
 
-    def _segmentIntersectPolygons(self, a, b):
-        for polygon in self._polygons:
-            if polygon.intersectSegment(a,b):
-                return True
-        return False
-                    
     def _attachToGraphNear(self, start, end, prune):
         firstS = True
         firstE = True
@@ -135,7 +98,7 @@ class Voronizator:
         minDistS = 0.
         minDistE = 0.
         for node in self._graph.nodes():
-            if (not prune) or (not self._segmentIntersectPolygons(start,np.array(node))):
+            if (not prune) or (not self._scene.segmentIntersect(start,np.array(node))):
                 if firstS:
                     minAttachS = node
                     minDistS = np.linalg.norm(start-np.array(node))
@@ -146,7 +109,7 @@ class Voronizator:
                         minAttachS = node
                         minDistS = currDist
                     
-            if (not prune) or (not self._segmentIntersectPolygons(end,np.array(node))):
+            if (not prune) or (not self._scene.segmentIntersect(end,np.array(node))):
                 if firstE:
                     minAttachE = node
                     minDistE = np.linalg.norm(end-np.array(node))
@@ -164,8 +127,8 @@ class Voronizator:
 
     def _attachToGraphAll(self, start, end, prune):
         for node in self._graph.nodes():
-            if (not prune) or (not self._segmentIntersectPolygons(start,np.array(node))):
+            if (not prune) or (not self._scene.segmentIntersect(start,np.array(node))):
                 self._graph.add_edge(tuple(start), node, weight=np.linalg.norm(start-np.array(node)))
-            if (not prune) or (not self._segmentIntersectPolygons(end,np.array(node))):
+            if (not prune) or (not self._scene.segmentIntersect(end,np.array(node))):
                 self._graph.add_edge(tuple(end), node, weight=np.linalg.norm(end-np.array(node)))
     
