@@ -67,9 +67,21 @@ class Path:
         angles of each pair of edges of the path.
         """
 
-        
+        #TODO: check if multiply is ok
+        return self._calculateMeanAngle(vertexes) + np.multiply(vlambda, self._calculateCostraints(vertexes))
+    
+    def _calculateMeanAngle(self, vertexes):
+        meanAngle = 0.
+        for i in range(1, self._dimR - 1): #from 1 to dimR-2
+            meanAngle = meanAngle + 1. + (np.dot(np.subtract(vertexes[i-1],vertexes[i]), np.subtract(vertexes[i+1],vertexes[i])) / (np.linalg.norm(np.subtract(vertexes[i-1],vertexes[i])) * np.linalg.norm(np.subtract(vertexes[i+1],vertexes[i]))))
+
+        #meanAngle = meanAngle / (self._dimR - 2)
+
+        return meanAngle
+
+    def _calculateCostraints(self, vertexes):
         return 0
-        
+    
     def plot(self, plotter, plotStartEnd=True, plotInnerVertexes=False, plotEdges=True, plotSpline=True):
         if self._vertexes.size > 0:
             self._smoothener.plot(self._vertexes, plotter, plotStartEnd, plotInnerVertexes, plotEdges, plotSpline)
