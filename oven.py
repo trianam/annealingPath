@@ -1,10 +1,14 @@
 import numpy as np
 
 class Oven:
-    def __init__(self, path):
-        self._path = path
+    def __init__(self, initialTemperature=1000, warmingRatio=0.8, trials=100, minTemperature=1, minDeltaEnergy=10):
+        self._initialTemperature = initialTemperature
+        self._warmingRatio = warmingRatio
+        self._trials = trials
+        self._minTemperature = minTemperature
+        self._minDeltaEnergy = minDeltaEnergy
 
-    def annealing(self, initialTemperature=1000, warmingRatio=0.8, trials=100, minTemperature=1, minDeltaEnergy=10):
+    def anneal(self, path):
         """
         Run the simulated annealing process. Start from given initial
         temperature and start a loop. In each iteration make a certain
@@ -15,13 +19,13 @@ class Oven:
         initial configuration and the final configuration, is less
         than a certain treshold.
         """
-        temperature = initialTemperature
-        while true:
-            initialEnergy = self._path.energy()
-            for i in range(trials):
-                self._path.tryMove(temperature)
+        temperature = self._initialTemperature
+        while True:
+            initialEnergy = path.energy()
+            for i in range(self._trials):
+                path.tryMove(temperature)
 
-            finalEnergy = self._path.energy()
-            temperature = temperature * warmingRatio
-            if (temperature < minTemperature) or (abs(initialEnergy - finalEnergy) < minDeltaEnergy):
+            finalEnergy = path.energy()
+            temperature = temperature * self._warmingRatio
+            if (temperature < self._minTemperature) or (abs(initialEnergy - finalEnergy) < self._minDeltaEnergy):
                 break

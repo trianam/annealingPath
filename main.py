@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import voronizator
 import polygon
 import scene
+import oven
 
 scene = scene.Scene()
 maxEmptyLen = 0.1
@@ -23,10 +24,12 @@ scene.addPolygon(poly1)
 scene.addBoundingBox([-1.,-1.], [2.,2.], maxEmptyLen=.2)
 
 voronoi = voronizator.Voronizator(scene)
+oven = oven.Oven()
 
 voronoi.makeVoroGraph()
 path = voronoi.createShortestPath(Vs, Ve, attachMode='near', minEdgeLen=0.05, maxEdgeLen=0.1)
 #voronoi.calculateShortestPath(Vs, Ve, 'all')
+oven.anneal(path)
 
 voronoi.plotSites(ax)
 scene.plot(ax)
