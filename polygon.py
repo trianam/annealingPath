@@ -38,8 +38,17 @@ class Polygon:
                     allPoints.append(mid)
                     edges.append([edge[0],mid])
                     edges.append([mid, edge[1]])
-                
+                    
         self.allPoints = np.array(allPoints)
+
+        vert = self._vertexes.tolist()
+        vert.append(vert[0])
+        cod=np.ones(len(vert),int)*Path.MOVETO
+        cod[1:len(vert)-1]=Path.LINETO
+        cod[len(vert)-1]=Path.CLOSEPOLY
+
+        self._mplPath = Path(vert, cod)
+
         
     _comb2 = lambda self,a,b: 0.5*a + 0.5*b
         
@@ -70,15 +79,11 @@ class Polygon:
 
         return False
 
+    def isInside(self, point):
+        return self._mplPath.contains_point(point)
+    
     def plot(self, plotter):
         if self._invisible == False:
-            vert = self._vertexes.tolist()
-            vert.append(vert[0])
-            cod=np.ones(len(vert),int)*Path.MOVETO
-            cod[1:len(vert)-1]=Path.LINETO
-            cod[len(vert)-1]=Path.CLOSEPOLY
-
-            path = Path(vert, cod)
-            patch = patches.PathPatch(path, facecolor='orange', lw=2)
+            patch = patches.PathPatch(self._mplPath, facecolor='orange', lw=2)
             plotter.add_patch(patch)
             

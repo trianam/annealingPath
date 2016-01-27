@@ -33,7 +33,7 @@ scene.plot(ax)
 #voronoi.plotGraph(ax, edges=False, labels=True)
 #voronoi.plotGraph(ax, pathExtremes=True)
 #voronoi.plotGraph(ax)
-path.plot(ax,plotInnerVertexes=True,plotSpline=False)
+path.plot(ax,plotInnerVertexes=True,plotSpline=True)
 
 ax.set_xlim(-1., 2.)
 ax.set_ylim(-1., 2.)

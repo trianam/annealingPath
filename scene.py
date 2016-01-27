@@ -27,6 +27,13 @@ class Scene:
     def polygons(self):
         return self._polygons
 
+    def isInside(self, point):
+        for p in self._polygons:
+            if p.isInside(point):
+                return True
+            
+        return False
+    
     def plot(self, plotter):
         for poly in self._polygons:
             poly.plot(plotter)

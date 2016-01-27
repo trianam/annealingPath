@@ -65,7 +65,7 @@ class Voronizator:
                 else:
                     i = i+1
 
-        return path.Path(np.array(shortestPath))
+        return path.Path(np.array(shortestPath), self._scene)
 
     def plotSites(self, plotter):
         if self._sites.size > 0:
