@@ -8,8 +8,8 @@ class Path:
     Represents a state of system in the lagrangian space (path
     configurations X costraint).
     """
-    _maxVlambdaPert = 1.
-    _maxVertexPert = 1.
+    _maxVlambdaPert = 0.01
+    _maxVertexPert = 0.01
     _initialVlambda = 0.
     _changeVlambdaProbability = 0.05
     _numPointsSplineMultiplier = 10
@@ -20,7 +20,7 @@ class Path:
         self._dimR = self._vertexes.shape[0]
         self._dimC = self._vertexes.shape[1]
         self._numPointsSpline = self._numPointsSplineMultiplier * self._dimR
-        self._vlambda = np.ones(self._vertexes.shape) * self._initialVlambda 
+        self._vlambda = self._initialVlambda 
         self._currentEnergy, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._vlambda)
 
     def energy(self):
@@ -38,10 +38,9 @@ class Path:
         moveC = random.randint(0,self._dimC - 1)
 
         moveVlambda = random.random() < self._changeVlambdaProbability
-        
         if moveVlambda:
-            newVlambda = np.copy(self.vlambda)
-            newVlambda[moveR][moveC] = newVlambda[moveR][moveC] + (random.uniform(-1.,1.) * self._maxVlambdaPert)
+            newVlambda = self._vlambda
+            newVlambda = newVlambda + (random.uniform(-1.,1.) * self._maxVlambdaPert)
 
             newEnergy,newMeanAngle,newCostraints = self._calculatePathEnergy(self._vertexes, newVlambda, moveR, moveC, moveVlambda)
 
@@ -92,7 +91,7 @@ class Path:
         costraints = self._calculateCostraints(vertexes, moveVlambda)
 
         if moveVlambda:
-            energy = self._currentEnergy - (self._vlambda[moveR][moveC] * self._currentCostraints) + (vlambda[moveR][moveC] * self._currentCostraints)
+            energy = self._currentEnergy - (self._vlambda * self._currentCostraints) + (vlambda * self._currentCostraints)
         else:
             energy = meanAngle + vlambda * costraints
             
@@ -108,7 +107,7 @@ class Path:
 
             meanAngle = meanAngle - (np.dot(np.subtract(self._vertexes[moveR-1],self._vertexes[moveR]), np.subtract(self._vertexes[moveR+1],self._vertexes[moveR])) / (np.linalg.norm(np.subtract(self._vertexes[moveR-1],self._vertexes[moveR])) * np.linalg.norm(np.subtract(self._vertexes[moveR+1],self._vertexes[moveR])))) + (np.dot(np.subtract(vertexes[moveR-1],vertexes[moveR]), np.subtract(vertexes[moveR+1],vertexes[moveR])) / (np.linalg.norm(np.subtract(vertexes[moveR-1],vertexes[moveR])) * np.linalg.norm(np.subtract(vertexes[moveR+1],vertexes[moveR]))))
 
-            if moveR <= self._dimR-2:
+            if moveR < self._dimR-2:
                 meanAngle = meanAngle - (np.dot(np.subtract(self._vertexes[moveR],self._vertexes[moveR+1]), np.subtract(self._vertexes[moveR+2],self._vertexes[moveR+1])) / (np.linalg.norm(np.subtract(self._vertexes[moveR],self._vertexes[moveR+1])) * np.linalg.norm(np.subtract(self._vertexes[moveR+2],self._vertexes[moveR+1])))) + (np.dot(np.subtract(vertexes[moveR],vertexes[moveR+1]), np.subtract(vertexes[moveR+2],vertexes[moveR+1])) / (np.linalg.norm(np.subtract(vertexes[moveR],vertexes[moveR+1])) * np.linalg.norm(np.subtract(vertexes[moveR+2],vertexes[moveR+1]))))
 
         return meanAngle

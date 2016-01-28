@@ -1,7 +1,7 @@
 import numpy as np
 
 class Oven:
-    def __init__(self, initialTemperature=1000, warmingRatio=0.8, trials=100, minTemperature=1, minDeltaEnergy=10):
+    def __init__(self, initialTemperature=1000, warmingRatio=0.8, trials=100, minTemperature=0.000001, minDeltaEnergy=0.000001):
         self._initialTemperature = initialTemperature
         self._warmingRatio = warmingRatio
         self._trials = trials
@@ -21,11 +21,15 @@ class Oven:
         """
         temperature = self._initialTemperature
         while True:
+            print('-----------------')
+            print('temp: {}'.format(temperature))
             initialEnergy = path.energy()
+            print('en.: {} -> '.format(initialEnergy), end='')
             for i in range(self._trials):
                 path.tryMove(temperature)
 
             finalEnergy = path.energy()
+            print('{}; lamb.: {}'.format(finalEnergy, path._vlambda))
             temperature = temperature * self._warmingRatio
             if (temperature < self._minTemperature) or (abs(initialEnergy - finalEnergy) < self._minDeltaEnergy):
                 break
