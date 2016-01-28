@@ -80,7 +80,10 @@ class Polygon:
         return False
 
     def isInside(self, point):
-        return self._mplPath.contains_point(point)
+        if not self._invisible:
+            return self._mplPath.contains_point(point)
+        else:
+            return False
     
     def plot(self, plotter):
         if self._invisible == False:

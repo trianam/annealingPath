@@ -10,6 +10,7 @@ import oven
 scene = scene.Scene()
 maxEmptyLen = 0.1
 poly1 = polygon.Polygon(vertexes=np.array([[0.1,0.1],[0.2,0.3],[0.25,0.45],[0.15,0.4]]), maxEmptyLen=maxEmptyLen)
+poly2 = polygon.Polygon(vertexes=np.array([[0.1,0.],[0.2,0.],[0.25,0.1]]), maxEmptyLen=maxEmptyLen)
 
 fig = plt.figure()
 ax = fig.gca()

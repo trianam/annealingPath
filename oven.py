@@ -1,7 +1,7 @@
 import numpy as np
 
 class Oven:
-    def __init__(self, initialTemperature=1000, warmingRatio=0.8, trials=100, minTemperature=0.000001, minDeltaEnergy=0.000001):
+    def __init__(self, initialTemperature=100000000, warmingRatio=0.8, trials=100, minTemperature=0.000001, minDeltaEnergy=0.000001):
         self._initialTemperature = initialTemperature
         self._warmingRatio = warmingRatio
         self._trials = trials
