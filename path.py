@@ -44,7 +44,7 @@ class Path:
         return self._vlambda
     
     
-    def tryMove(self, temperature, useLength=True):
+    def tryMove(self, temperature, useLength):
         """
         Move the path or lambda multipiers in a neighbouring state,
         with a certain acceptance probability.

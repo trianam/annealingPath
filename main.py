@@ -31,7 +31,7 @@ oven = oven.Oven()
 voronoi.makeVoroGraph()
 path = voronoi.createShortestPath(Vs, Ve, attachMode='near', minEdgeLen=0.05, maxEdgeLen=0.08)
 #voronoi.calculateShortestPath(Vs, Ve, 'all')
-oven.anneal(path)
+oven.anneal(path, useLength=True)
 
 voronoi.plotSites(ax)
 scene.plot(ax)
