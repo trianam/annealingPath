@@ -8,7 +8,7 @@ class Path:
     Represents a state of system in the lagrangian space (path
     configurations X costraint).
     """
-    _maxVlambdaPert = 0.01
+    _maxVlambdaPert = 10.
     _maxVertexPert = 0.01
     _initialVlambda = 0.
     _changeVlambdaProbability = 0.05
@@ -23,8 +23,26 @@ class Path:
         self._vlambda = self._initialVlambda 
         self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._vlambda)
 
+    @property
     def energy(self):
         return self._currentEnergy
+    
+    @property
+    def length(self):
+        return self._currentLength
+    
+    @property
+    def meanAngle(self):
+        return self._currentMeanAngle
+    
+    @property
+    def costraints(self):
+        return self._currentCostraints
+    
+    @property
+    def vlambda(self):
+        return self._vlambda
+    
     
     def tryMove(self, temperature, useLength=True):
         """

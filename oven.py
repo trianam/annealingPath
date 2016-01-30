@@ -21,15 +21,11 @@ class Oven:
         """
         temperature = self._initialTemperature
         while True:
-            print('-----------------')
-            print('temp: {}'.format(temperature))
-            initialEnergy = path.energy()
-            print('en.: {} -> '.format(initialEnergy), end='')
+            print('t:{0:<22};e:{1:<22};l:{2:<22};a:{3:<22};c:{4:<22};l:{5:<22}'.format(temperature, path.energy, path.length, path.meanAngle, path.costraints, path.vlambda))
+            initialEnergy = path.energy
             for i in range(self._trials):
                 path.tryMove(temperature)
-
-            finalEnergy = path.energy()
-            print('{}; lamb.: {}'.format(finalEnergy, path._vlambda))
+            finalEnergy = path.energy
             temperature = temperature * self._warmingRatio
             if (temperature < self._minTemperature) or (abs(initialEnergy - finalEnergy) < self._minDeltaEnergy):
                 break

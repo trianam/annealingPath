@@ -56,10 +56,11 @@ class Voronizator:
             while (i<len(shortestPath)):
                 a = np.array(shortestPath[i-1])
                 b = np.array(shortestPath[i])
-                if (np.linalg.norm(b-a) < minEdgeLen):
-                    shortestPath[i] = (0.5*a+0.5*b).tolist()
-                    shortestPath.pop(i-1)
-                    i=max(1, i-1)
+                if (np.linalg.norm(b-a) < minEdgeLen) and (i>1) and (i<len(shortestPath)-1): #don't adjust extremes
+                        shortestPath[i] = (0.5*a+0.5*b).tolist()
+                        shortestPath.pop(i-1)
+                        i = i-1
+                        
                 elif (np.linalg.norm(b-a) > maxEdgeLen):
                     shortestPath.insert(i, (0.5*a+0.5*b).tolist())
                 else:
