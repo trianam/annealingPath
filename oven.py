@@ -41,7 +41,7 @@ class Oven:
         self._textLam = axes.text(0.02, 0.70, '', transform=axes.transAxes)
         self._path = path
         self._temperature = self._initialTemperature
-        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=1, blit=True, repeat=False, fargs=[useLength], init_func=self._init)
+        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=0, blit=True, repeat=False, fargs=[useLength], init_func=self._init)
 
     def _init(self):
         self._aniLine.set_data([], [])
