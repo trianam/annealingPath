@@ -24,6 +24,10 @@ class Path:
         self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._vlambda)
 
     @property
+    def vertexes(self):
+        return self._vertexes
+    
+    @property
     def energy(self):
         return self._currentEnergy
     

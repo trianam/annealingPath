@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.animation
 
 class Oven:
     def __init__(self, initialTemperature=100000000, warmingRatio=0.8, trials=100, minTemperature=0.000001, minDeltaEnergy=0.000001):
@@ -29,3 +30,42 @@ class Oven:
             temperature = temperature * self._warmingRatio
             if (temperature < self._minTemperature) or (abs(initialEnergy - finalEnergy) < self._minDeltaEnergy):
                 break
+
+    def annealAnimation(self, path, figure, axes, useLength=True):
+        self._aniLine, = axes.plot([], [], 'ro-')
+        self._textTemp = axes.text(0.02, 0.95, '', transform=axes.transAxes)
+        self._textEner = axes.text(0.02, 0.90, '', transform=axes.transAxes)
+        self._textLen = axes.text(0.02, 0.85, '', transform=axes.transAxes)
+        self._textAng = axes.text(0.02, 0.80, '', transform=axes.transAxes)
+        self._textCos = axes.text(0.02, 0.75, '', transform=axes.transAxes)
+        self._textLam = axes.text(0.02, 0.70, '', transform=axes.transAxes)
+        self._path = path
+        self._temperature = self._initialTemperature
+        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=1, blit=True, repeat=False, fargs=[useLength], init_func=self._init)
+
+    def _init(self):
+        self._aniLine.set_data([], [])
+        self._textTemp.set_text('')
+        self._textEner.set_text('')
+        self._textLen.set_text('')
+        self._textAng.set_text('')
+        self._textCos.set_text('')
+        self._textLam.set_text('')
+        
+        return self._aniLine, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
+        
+    def _animate(self, i, useLength):
+        for i in range(self._trials):
+            self._path.tryMove(self._temperature, useLength)
+
+        self._aniLine.set_data(self._path.vertexes[:,0], self._path.vertexes[:,1])
+        self._textTemp.set_text('temp.  = {}'.format(self._temperature))
+        self._textEner.set_text('Energy = {}'.format(self._path.energy))
+        self._textLen.set_text('Length = {}'.format(self._path.length))
+        self._textAng.set_text('Angle  = {}'.format(self._path.meanAngle))
+        self._textCos.set_text('Costr. = {}'.format(self._path.costraints))
+        self._textLam.set_text('Lambda = {}'.format(self._path.vlambda))
+
+        self._temperature = self._temperature * self._warmingRatio
+
+        return self._aniLine, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
