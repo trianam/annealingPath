@@ -13,6 +13,7 @@ class Path:
     _initialVlambda = 0.
     _changeVlambdaProbability = 0.05
     _numPointsSplineMultiplier = 10
+    _numSigmaGauss = 9
     
     def __init__(self, initialVertexes, scene):
         self._vertexes = initialVertexes
@@ -48,7 +49,7 @@ class Path:
         return self._vlambda
     
     
-    def tryMove(self, temperature, useLength):
+    def tryMove(self, temperature, useLength, neighbourMode):
         """
         Move the path or lambda multipiers in a neighbouring state,
         with a certain acceptance probability.
@@ -75,13 +76,31 @@ class Path:
                 self._currentEnergy = newEnergy
         
         else:
-            moveR = random.randint(1,self._dimR - 2) #don't change extremes
-            moveC = random.randint(0,self._dimC - 1)
-
             newVertexes = np.copy(self._vertexes)
-            newVertexes[moveR][moveC] = newVertexes[moveR][moveC] + (random.uniform(-1.,1.) * self._maxVertexPert)
+            movedV = random.randint(1,self._dimR - 2) #don't change extremes
 
-            newEnergy,newLength,newMeanAngle,newCostraints = self._calculatePathEnergyVertex(newVertexes, moveR, useLength)
+            if(neighbourMode == 0):
+                moveC = random.randint(0,self._dimC - 1)
+                newVertexes[movedV][moveC] = newVertexes[movedV][moveC] + (random.uniform(-1.,1.) * self._maxVertexPert)
+            else:
+                a = self._vertexes[movedV-1] - self._vertexes[movedV+1]
+                b = np.array([1,0])
+                
+                alfa = math.acos(np.dot(a,b)/(np.linalg.norm(a)*np.linalg.norm(b))) - (math.pi/2)
+                randAng = self._truncGauss(math.pi/2, math.pi/(2*self._numSigmaGauss), 0, math.pi)
+                if random.randint(0,self._dimC - 1) == 1:
+                    randAng = randAng + math.pi
+
+                randAng = randAng + alfa
+
+                randDist = random.uniform(-1.,1.) * self._maxVertexPert
+
+                newVertexes[movedV] = self._vertexes[movedV] + np.array([randDist * math.cos(randAng), randDist * math.sin(randAng)])
+#                newVertexes[movedV][0] = newVertex[0]
+#                newVertexes[movedV][1] = newVertex[1]
+                            
+                
+            newEnergy,newLength,newMeanAngle,newCostraints = self._calculatePathEnergyVertex(newVertexes, movedV, useLength)
 
             #attention, different formula from above
             if (newEnergy < self._currentEnergy) or (math.exp(-(newEnergy-self._currentEnergy)/temperature) >= random.random()):
@@ -91,6 +110,12 @@ class Path:
                 self._currentMeanAngle = newMeanAngle
                 self._currentCostraints = newCostraints
 
+    def _truncGauss(self, mu, sigma, bottom, top):
+        v = random.gauss(mu,sigma)
+        while not (bottom <= v <= top):
+            v = random.gauss(mu,sigma)
+        return v
+        
     def _initializePathEnergy(self, vertexes, vlambda):
         length = 0.
         for i in range(1, self._dimR):

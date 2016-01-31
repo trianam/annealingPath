@@ -2,14 +2,14 @@ import numpy as np
 import matplotlib.animation
 
 class Oven:
-    def __init__(self, initialTemperature=100000000, warmingRatio=0.8, trials=100, minTemperature=0.000001, minDeltaEnergy=0.000001):
+    def __init__(self, initialTemperature=1000, warmingRatio=0.9, trials=100, minTemperature=0.00000001, minDeltaEnergy=0.000001):
         self._initialTemperature = initialTemperature
         self._warmingRatio = warmingRatio
         self._trials = trials
         self._minTemperature = minTemperature
         self._minDeltaEnergy = minDeltaEnergy
 
-    def anneal(self, path, useLength=True):
+    def anneal(self, path, useLength=True, neighbourMode=0):
         """
         Run the simulated annealing process. Start from given initial
         temperature and start a loop. In each iteration make a certain
@@ -25,13 +25,13 @@ class Oven:
             print('t:{0:<22};e:{1:<22};l:{2:<22};a:{3:<22};c:{4:<22};l:{5:<22}'.format(temperature, path.energy, path.length, path.meanAngle, path.costraints, path.vlambda))
             initialEnergy = path.energy
             for i in range(self._trials):
-                path.tryMove(temperature, useLength)
+                path.tryMove(temperature, useLength, neighbourMode)
             finalEnergy = path.energy
             temperature = temperature * self._warmingRatio
             if (temperature < self._minTemperature) or (abs(initialEnergy - finalEnergy) < self._minDeltaEnergy):
                 break
 
-    def annealAnimation(self, path, figure, axes, useLength=True):
+    def annealAnimation(self, path, figure, axes, useLength=True, neighbourMode=0):
         self._aniLine, = axes.plot([], [], 'ro-')
         self._textTemp = axes.text(0.02, 0.95, '', transform=axes.transAxes)
         self._textEner = axes.text(0.02, 0.90, '', transform=axes.transAxes)
@@ -41,7 +41,7 @@ class Oven:
         self._textLam = axes.text(0.02, 0.70, '', transform=axes.transAxes)
         self._path = path
         self._temperature = self._initialTemperature
-        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=0, blit=True, repeat=False, fargs=[useLength], init_func=self._init)
+        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=0, blit=True, repeat=False, fargs=(useLength,neighbourMode), init_func=self._init)
 
     def _init(self):
         self._aniLine.set_data([], [])
@@ -54,9 +54,9 @@ class Oven:
         
         return self._aniLine, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
         
-    def _animate(self, i, useLength):
+    def _animate(self, i, useLength, neighbourMode):
         for i in range(self._trials):
-            self._path.tryMove(self._temperature, useLength)
+            self._path.tryMove(self._temperature, useLength, neighbourMode)
 
         self._aniLine.set_data(self._path.vertexes[:,0], self._path.vertexes[:,1])
         self._textTemp.set_text('temp.  = {}'.format(self._temperature))
