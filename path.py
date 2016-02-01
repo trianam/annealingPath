@@ -21,13 +21,18 @@ class Path:
         self._dimR = self._vertexes.shape[0]
         self._dimC = self._vertexes.shape[1]
         self._numPointsSpline = self._numPointsSplineMultiplier * self._dimR
+        self._spline = self._splinePoints(self._vertexes)
         self._vlambda = self._initialVlambda 
-        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._vlambda)
+        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._spline, self._vlambda)
 
     @property
     def vertexes(self):
         return self._vertexes
-    
+
+    @property
+    def spline(self):
+        return self._spline
+
     @property
     def energy(self):
         return self._currentEnergy
@@ -100,11 +105,12 @@ class Path:
 #                newVertexes[movedV][1] = newVertex[1]
                             
                 
-            newEnergy,newLength,newMeanAngle,newCostraints = self._calculatePathEnergyVertex(newVertexes, movedV, useLength)
+            newSpline,newEnergy,newLength,newMeanAngle,newCostraints = self._calculatePathEnergyVertex(newVertexes, movedV, useLength)
 
             #attention, different formula from above
             if (newEnergy < self._currentEnergy) or (math.exp(-(newEnergy-self._currentEnergy)/temperature) >= random.random()):
                 self._vertexes = newVertexes
+                self._spline = newSpline
                 self._currentEnergy = newEnergy
                 self._currentLength = newLength
                 self._currentMeanAngle = newMeanAngle
@@ -116,7 +122,7 @@ class Path:
             v = random.gauss(mu,sigma)
         return v
         
-    def _initializePathEnergy(self, vertexes, vlambda):
+    def _initializePathEnergy(self, vertexes, spline, vlambda):
         length = 0.
         for i in range(1, self._dimR):
             length = length + np.linalg.norm(np.subtract(vertexes[i], vertexes[i-1]))
@@ -127,7 +133,7 @@ class Path:
             meanAngle = meanAngle + 1. + (np.dot(np.subtract(vertexes[i-1],vertexes[i]), np.subtract(vertexes[i+1],vertexes[i])) / (np.linalg.norm(np.subtract(vertexes[i-1],vertexes[i])) * np.linalg.norm(np.subtract(vertexes[i+1],vertexes[i]))))
             #meanAngle = meanAngle / (self._dimR - 2)
 
-        costraints = self._calculateCostraints(vertexes)
+        costraints = self._calculateCostraints(spline)
 
         energy = meanAngle + vlambda * costraints
         
@@ -144,7 +150,8 @@ class Path:
         """
         calculate the energy when a vertex is moved and returns it.
         """
-        costraints = self._calculateCostraints(vertexes)
+        spline = self._splinePoints(vertexes)
+        costraints = self._calculateCostraints(spline)
         if useLength:
             length = self._calculateLength(vertexes, movedV)
             meanAngle = self._currentMeanAngle
@@ -154,7 +161,7 @@ class Path:
             meanAngle = self._calculateMeanAngle(vertexes, movedV)
             energy = meanAngle + self._vlambda * costraints
             
-        return (energy, length, meanAngle, costraints)
+        return (spline, energy, length, meanAngle, costraints)
 
     def _calculateLength(self, vertexes, movedV):
         length = self._currentLength
@@ -176,14 +183,14 @@ class Path:
 
         return meanAngle
 
-    def _calculateCostraints(self, vertexes):
+    def _calculateCostraints(self, spline):
         """
         calculate the costraints function. Is the ratio of the points
         of the calculated spline that are inside obstacles respect the
         total number of points of the spline.
         """
         pointsInside = 0
-        for p in self._splinePoints(vertexes):
+        for p in spline:
             if self._scene.isInside(p):
                 pointsInside = pointsInside + 1
 
@@ -223,6 +230,5 @@ class Path:
         if plotInnerVertexes:
             plotter.plot(self._vertexes[1:-1,0], self._vertexes[1:-1,1], 'ro')
         if plotSpline:
-            spline = self._splinePoints(self._vertexes)
-            plotter.plot(spline[:,0], spline[:,1], 'r', lw=2)
+            plotter.plot(self._spline[:,0], self._spline[:,1], 'r', lw=2)
 

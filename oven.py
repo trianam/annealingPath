@@ -32,7 +32,8 @@ class Oven:
                 break
 
     def annealAnimation(self, path, figure, axes, useLength=True, neighbourMode=0):
-        self._aniLine, = axes.plot([], [], 'ro-')
+        self._aniLine, = axes.plot([], [], 'ko-')
+        self._aniSpline, = axes.plot([], [], 'r-', lw=2)
         self._textTemp = axes.text(0.02, 0.95, '', transform=axes.transAxes)
         self._textEner = axes.text(0.02, 0.90, '', transform=axes.transAxes)
         self._textLen = axes.text(0.02, 0.85, '', transform=axes.transAxes)
@@ -45,6 +46,7 @@ class Oven:
 
     def _init(self):
         self._aniLine.set_data([], [])
+        self._aniSpline.set_data([], [])
         self._textTemp.set_text('')
         self._textEner.set_text('')
         self._textLen.set_text('')
@@ -52,13 +54,14 @@ class Oven:
         self._textCos.set_text('')
         self._textLam.set_text('')
         
-        return self._aniLine, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
+        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
         
     def _animate(self, i, useLength, neighbourMode):
         for i in range(self._trials):
             self._path.tryMove(self._temperature, useLength, neighbourMode)
 
         self._aniLine.set_data(self._path.vertexes[:,0], self._path.vertexes[:,1])
+        self._aniSpline.set_data(self._path.spline[:,0], self._path.spline[:,1])
         self._textTemp.set_text('temp.  = {}'.format(self._temperature))
         self._textEner.set_text('Energy = {}'.format(self._path.energy))
         self._textLen.set_text('Length = {}'.format(self._path.length))
@@ -68,4 +71,4 @@ class Oven:
 
         self._temperature = self._temperature * self._warmingRatio
 
-        return self._aniLine, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
+        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
