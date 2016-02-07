@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.animation
+import sys
 
 class Oven:
     def __init__(self, initialTemperature=1000, warmingRatio=0.9, trials=100, minTemperature=0.00000001, minDeltaEnergy=0.000001):
@@ -8,6 +9,7 @@ class Oven:
         self._trials = trials
         self._minTemperature = minTemperature
         self._minDeltaEnergy = minDeltaEnergy
+        self._pauseAnimation = False
 
     def anneal(self, path, useLength=True, neighbourMode=0):
         """
@@ -32,6 +34,8 @@ class Oven:
                 break
 
     def annealAnimation(self, path, figure, axes, useLength=True, neighbourMode=0):
+        figure.canvas.mpl_connect('key_press_event', self._onClick)
+
         self._aniLine, = axes.plot([], [], 'ko-')
         self._aniSpline, = axes.plot([], [], 'r-', lw=2)
         self._textTemp = axes.text(0.02, 0.95, '', transform=axes.transAxes)
@@ -42,7 +46,7 @@ class Oven:
         self._textLam = axes.text(0.02, 0.70, '', transform=axes.transAxes)
         self._path = path
         self._temperature = self._initialTemperature
-        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=5, blit=True, repeat=False, fargs=(useLength,neighbourMode), init_func=self._init)
+        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=6, blit=True, repeat=False, fargs=(useLength,neighbourMode), init_func=self._init)
 
     def _init(self):
         self._aniLine.set_data([], [])
@@ -57,18 +61,26 @@ class Oven:
         return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
         
     def _animate(self, i, useLength, neighbourMode):
-        for i in range(self._trials):
-            self._path.tryMove(self._temperature, useLength, neighbourMode)
+        if not self._pauseAnimation:
+            for i in range(self._trials):
+                self._path.tryMove(self._temperature, useLength, neighbourMode)
 
-        self._aniLine.set_data(self._path.vertexes[:,0], self._path.vertexes[:,1])
-        self._aniSpline.set_data(self._path.spline[:,0], self._path.spline[:,1])
-        self._textTemp.set_text('temp.  = {}'.format(self._temperature))
-        self._textEner.set_text('Energy = {}'.format(self._path.energy))
-        self._textLen.set_text('Length = {}'.format(self._path.length))
-        self._textAng.set_text('Angle  = {}'.format(self._path.meanAngle))
-        self._textCos.set_text('Costr. = {}'.format(self._path.costraints))
-        self._textLam.set_text('Lambda = {}'.format(self._path.vlambda))
+            self._aniLine.set_data(self._path.vertexes[:,0], self._path.vertexes[:,1])
+            self._aniSpline.set_data(self._path.spline[:,0], self._path.spline[:,1])
+            self._textTemp.set_text('temp.  = {}'.format(self._temperature))
+            self._textEner.set_text('Energy = {}'.format(self._path.energy))
+            self._textLen.set_text('Length = {}'.format(self._path.length))
+            self._textAng.set_text('Angle  = {}'.format(self._path.meanAngle))
+            self._textCos.set_text('Costr. = {}'.format(self._path.costraints))
+            self._textLam.set_text('Lambda = {}'.format(self._path.vlambda))
 
-        self._temperature = self._temperature * self._warmingRatio
+            self._temperature = self._temperature * self._warmingRatio
 
         return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
+
+    def _onClick(self, event):
+        if event.key == ' ':
+            self._pauseAnimation ^= True
+        elif event.key == 'q':
+            sys.exit()
+
