@@ -8,7 +8,7 @@ class Path:
     Represents a state of system in the lagrangian space (path
     configurations X costraint).
     """
-    _maxVlambdaPert = 10.
+    _maxVlambdaPert = 100.
     _maxVertexPert = 0.01
     _initialVlambda = 0.
     _changeVlambdaProbability = 0.05
@@ -130,8 +130,8 @@ class Path:
         
         meanAngle = 0.
         for i in range(1, self._dimR - 1): #from 1 to dimR-2
-            meanAngle = meanAngle + 1. + (np.dot(np.subtract(vertexes[i-1],vertexes[i]), np.subtract(vertexes[i+1],vertexes[i])) / (np.linalg.norm(np.subtract(vertexes[i-1],vertexes[i])) * np.linalg.norm(np.subtract(vertexes[i+1],vertexes[i]))))
-            #meanAngle = meanAngle / (self._dimR - 2)
+            meanAngle = meanAngle + self._calculateAngle(vertexes[i-1], vertexes[i], vertexes[i+1])
+        meanAngle = meanAngle / (self._dimR - 2)
 
         costraints = self._calculateCostraints(spline)
 
@@ -154,10 +154,12 @@ class Path:
         costraints = self._calculateCostraints(spline)
         if useLength:
             length = self._calculateLength(vertexes, movedV)
-            meanAngle = self._currentMeanAngle
+            #meanAngle = self._currentMeanAngle
+            meanAngle = 0.
             energy = length + self._vlambda * costraints
         else:
-            length = self._currentLength
+            #length = self._currentLength
+            length = 0.
             meanAngle = self._calculateMeanAngle(vertexes, movedV)
             energy = meanAngle + self._vlambda * costraints
             
@@ -166,20 +168,20 @@ class Path:
     def _calculateLength(self, vertexes, movedV):
         length = self._currentLength
         
-        length = length - np.linalg.norm(np.subtract(self._vertexes[movedV], self._vertexes[movedV-1])) + np.linalg.norm(np.subtract(vertexes[movedV], vertexes[movedV-1]))
-        length = length - np.linalg.norm(np.subtract(self._vertexes[movedV+1], self._vertexes[movedV])) + np.linalg.norm(np.subtract(vertexes[movedV+1], vertexes[movedV]))
+        length = length - self._calculateLength(self._vertexes[movedV], self._vertexes[movedV-1]) + self._calculateLength(vertexes[movedV], vertexes[movedV-1])
+        length = length - self._calculateLength(self._vertexes[movedV+1], self._vertexes[movedV]) + self._calculateLength(vertexes[movedV+1], vertexes[movedV])
 
         return length
     
     def _calculateMeanAngle(self, vertexes, movedV):
         meanAngle = self._currentMeanAngle
         if movedV >= 2:
-            meanAngle = meanAngle - (np.dot(np.subtract(self._vertexes[movedV-2],self._vertexes[movedV-1]), np.subtract(self._vertexes[movedV],self._vertexes[movedV-1])) / (np.linalg.norm(np.subtract(self._vertexes[movedV-2],self._vertexes[movedV-1])) * np.linalg.norm(np.subtract(self._vertexes[movedV],self._vertexes[movedV-1])))) + (np.dot(np.subtract(vertexes[movedV-2],vertexes[movedV-1]), np.subtract(vertexes[movedV],vertexes[movedV-1])) / (np.linalg.norm(np.subtract(vertexes[movedV-2],vertexes[movedV-1])) * np.linalg.norm(np.subtract(vertexes[movedV],vertexes[movedV-1]))))
+            meanAngle = meanAngle + (self._calculateAngle(vertexes[movedV-2], vertexes[movedV-1], vertexes[movedV]) - self._calculateAngle(self._vertexes[movedV-2], self._vertexes[movedV-1], self._vertexes[movedV])) / (self._dimR - 2)
 
-        meanAngle = meanAngle - (np.dot(np.subtract(self._vertexes[movedV-1],self._vertexes[movedV]), np.subtract(self._vertexes[movedV+1],self._vertexes[movedV])) / (np.linalg.norm(np.subtract(self._vertexes[movedV-1],self._vertexes[movedV])) * np.linalg.norm(np.subtract(self._vertexes[movedV+1],self._vertexes[movedV])))) + (np.dot(np.subtract(vertexes[movedV-1],vertexes[movedV]), np.subtract(vertexes[movedV+1],vertexes[movedV])) / (np.linalg.norm(np.subtract(vertexes[movedV-1],vertexes[movedV])) * np.linalg.norm(np.subtract(vertexes[movedV+1],vertexes[movedV]))))
+        meanAngle = meanAngle + (self._calculateAngle(vertexes[movedV-1], vertexes[movedV], vertexes[movedV+1]) - self._calculateAngle(self._vertexes[movedV-1], self._vertexes[movedV], self._vertexes[movedV+1])) / (self._dimR - 2)
 
         if movedV < self._dimR-2:
-            meanAngle = meanAngle - (np.dot(np.subtract(self._vertexes[movedV],self._vertexes[movedV+1]), np.subtract(self._vertexes[movedV+2],self._vertexes[movedV+1])) / (np.linalg.norm(np.subtract(self._vertexes[movedV],self._vertexes[movedV+1])) * np.linalg.norm(np.subtract(self._vertexes[movedV+2],self._vertexes[movedV+1])))) + (np.dot(np.subtract(vertexes[movedV],vertexes[movedV+1]), np.subtract(vertexes[movedV+2],vertexes[movedV+1])) / (np.linalg.norm(np.subtract(vertexes[movedV],vertexes[movedV+1])) * np.linalg.norm(np.subtract(vertexes[movedV+2],vertexes[movedV+1]))))
+            meanAngle = meanAngle + (self._calculateAngle(vertexes[movedV], vertexes[movedV+1], vertexes[movedV+2]) - self._calculateAngle(self._vertexes[movedV], self._vertexes[movedV+1], self._vertexes[movedV+2])) / (self._dimR - 2)
 
         return meanAngle
 
@@ -220,7 +222,13 @@ class Path:
 
         return np.vstack((x_i,y_i)).T
 
+    def _calculateLength(self, a, b):
+        return np.linalg.norm(np.subtract(a, b))
         
+    def _calculateAngle(self, a, b, c):
+        #return 1. + (np.dot(np.subtract(a,b), np.subtract(c,b)) / (np.linalg.norm(np.subtract(a,b)) * np.linalg.norm(np.subtract(c,b))))
+        return 1. + (np.dot(np.subtract(b,a), np.subtract(b,c)) / (np.linalg.norm(np.subtract(b,a)) * np.linalg.norm(np.subtract(b,c))))
+
     def plot(self, plotter, plotStartEnd=True, plotInnerVertexes=False, plotEdges=True, plotSpline=True):
         if plotEdges:
             plotter.plot(self._vertexes[:,0], self._vertexes[:,1], 'r--')

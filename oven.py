@@ -41,9 +41,9 @@ class Oven:
         self._textTemp = axes.text(0.02, 0.95, '', transform=axes.transAxes)
         self._textEner = axes.text(0.02, 0.90, '', transform=axes.transAxes)
         self._textLen = axes.text(0.02, 0.85, '', transform=axes.transAxes)
-        self._textAng = axes.text(0.02, 0.80, '', transform=axes.transAxes)
-        self._textCos = axes.text(0.02, 0.75, '', transform=axes.transAxes)
-        self._textLam = axes.text(0.02, 0.70, '', transform=axes.transAxes)
+        self._textAng = axes.text(0.52, 0.95, '', transform=axes.transAxes)
+        self._textCos = axes.text(0.52, 0.90, '', transform=axes.transAxes)
+        self._textLam = axes.text(0.52, 0.85, '', transform=axes.transAxes)
         self._path = path
         self._temperature = self._initialTemperature
         ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=6, blit=True, repeat=False, fargs=(useLength,neighbourMode), init_func=self._init)
