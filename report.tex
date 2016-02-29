@@ -196,38 +196,41 @@ $\mathcal{N}(x^*)$ is the set of all neighbours of $x^*$.
 
 \subsubsection{Lagrangian relaxation in project}
 In the project the variable space $X$ is composed of all possible
-configuration of the path, or in other words is the ordered vector
-$\mathbf{v}=(\mathbf{v}_1,\dots,\mathbf{v}_n)$ of all $n$ vertexes $\mathbf{v}_i=(x_i,y_i)$ of the
+configuration of the path, or in other words is the vector
+$\mathbf{v}=(\mathbf{v}_1,\dots,\mathbf{v}_n)$ of all $n$ ordered
+vertexes $\mathbf{v}_i=(x_i,y_i)$ of the
 path. The problem~\eqref{eq:opt} is formulated in two different
-versions in the project. The first one is:
-\begin{equation*}
-\begin{aligned}
-& \underset{\mathbf{v}}{\text{minimize}}
-& & length(\mathbf{v}) \\
-& \text{subject to}
-& & \left|bspline(\mathbf{v})\cap \bigcup_{i\in I}obstacle_i\right| = 0.
-\end{aligned}
-\end{equation*}
-Where $length(\mathbf{v})$ is the sum of the length of every edge of the
-path, that is the sum of the distances of every consecutive pair of
-vertexes $\mathbf{v_{i-1}}$ and $\mathbf{v_i}$; $bspline(\mathbf{v})$
-is the set of points of the \emph{B-Spline} obtained as explained in
-section~\ref{sec:spline} using the path as control polygon;
-$obstacle_i$ is the surface of the $i^{th}$ of $m$ obstacles, and
-$I=\{1,\dots,m\}$.
-
-The second version is similar, but the function to minimize is
-$angle(\mathbf{v})$ instead of $length(\mathbf{v})$, where
-\begin{equation*}
-  angle(\mathbf{v}) = \frac{\sum_{i=2}^{n-1}(1+\cos(\measuredangle \mathbf{v}_{i-1}\mathbf{v}_{i}\mathbf{v}_{i+1}))}{n-2},
-\end{equation*}
-and
-\begin{equation*}
-  cos(\measuredangle
-  \mathbf{v}_{i-1}\mathbf{v}_{i}\mathbf{v}_{i+1})=\frac{(\mathbf{v}_{i-1}-\mathbf{v}_{i})\cdot
-  (\mathbf{v}_{i+1}-\mathbf{v}_{i})}{\|\mathbf{v}_{i-1}-\mathbf{v}_{i}\|\
-  \|\mathbf{v}_{i+1}-\mathbf{v}_{i})\|}.
-\end{equation*}
+versions in the project.
+\begin{itemize}
+\item The first one is:
+  \begin{equation*}
+    \begin{aligned}
+      & \underset{\mathbf{v}}{\text{minimize}}
+      & & length(\mathbf{v}) \\
+      & \text{subject to}
+      & & \left|bspline(\mathbf{v})\cap \bigcup_{i\in I}obstacle_i\right| = 0.
+    \end{aligned}
+  \end{equation*}
+  Where $length(\mathbf{v})$ is the sum of the length of every edge of the
+  path, that is the sum of the distances of every consecutive pair of
+  vertexes $\mathbf{v_{i-1}}$ and $\mathbf{v_i}$; $bspline(\mathbf{v})$
+  is the set of points of the \emph{B-Spline} obtained as explained in
+  section~\ref{sec:spline} using the path as control polygon;
+  $obstacle_i$ is the surface of the $i^{th}$ of $m$ obstacles, and
+  $I=\{1,\dots,m\}$.
+\item The second version is similar, but the function to minimize is
+  $angle(\mathbf{v})$ instead of $length(\mathbf{v})$, where
+  \begin{equation*}
+    angle(\mathbf{v}) = \frac{\sum_{i=2}^{n-1}(1+\cos(\measuredangle \mathbf{v}_{i-1}\mathbf{v}_{i}\mathbf{v}_{i+1}))}{n-2},
+  \end{equation*}
+  and
+  \begin{equation*}
+    cos(\measuredangle
+    \mathbf{v}_{i-1}\mathbf{v}_{i}\mathbf{v}_{i+1})=\frac{(\mathbf{v}_{i-1}-\mathbf{v}_{i})\cdot
+      (\mathbf{v}_{i+1}-\mathbf{v}_{i})}{\|\mathbf{v}_{i-1}-\mathbf{v}_{i}\|\
+      \|\mathbf{v}_{i+1}-\mathbf{v}_{i})\|}.
+  \end{equation*}
+\end{itemize}
 
 The constraint function is not negative, and is calculated as the
 ratio
@@ -243,9 +246,11 @@ equation~\eqref{eq:lagrangianFun} is
 \end{equation}
 or, alternatively, the correspondent one that use $angle(\mathbf{v})$ instead of $length(\mathbf{v})$.
 
-\subsubsection{Annealing step}
-The simulated annealing aim is to find the minimum saddle points in
-the curve represented by the equation~\eqref{eq:lagrangianFunProj}. 
+\subsubsection{Annealing phase}
+The target of the simulated annealing phase is to find the minimum
+saddle points in
+the curve represented by the
+equation~\eqref{eq:lagrangianFunProj}. The algorithm is
 
 \begin{figure}[htb]
   \centering
