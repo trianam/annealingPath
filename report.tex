@@ -12,6 +12,8 @@
 \usepackage[hidelinks,breaklinks=true]{hyperref}
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 
 \newcommand{\me}{\ensuremath{\mathrm{e}}}
 \newcommand{\md}{\ensuremath{\mathrm{d}}}
@@ -62,7 +64,9 @@
 The \emph{Path planning} problem is a common problem in robotics, the
 purpose is to find the best route in a bidimensional (or
 tridimensional) space with obstacles in it, from one point to
-another.
+another. Many techniques exists for calculating the path, in this work
+we analyze the application to this problem of a statistical method
+commonly used in optimization problems.
 
 \section{Path planning}
 In this project the space is bidimensional and the obstacles are
@@ -250,7 +254,30 @@ or, alternatively, the correspondent one that use $angle(\mathbf{v})$ instead of
 The target of the simulated annealing phase is to find the minimum
 saddle points in
 the curve represented by the
-equation~\eqref{eq:lagrangianFunProj}. The algorithm is
+equation~\eqref{eq:lagrangianFunProj}.
+\begin{algorithm}
+ \caption{Annealing}\label{alg:annealing}
+ \begin{algorithmic}[1]
+   \Procedure{annealing}{$\mathbf{x}$}
+   \State $\lambda\gets initialLambda$
+   \State $T\gets initialTemperature$
+   \While{not $terminationCondition()$}
+   \For{number of trials}
+   \State $changeLambda\gets$ true with $changeLambdaProb$
+   \If{$changeLambda$}
+   \State $\lambda'\gets neighbour(\lambda)$
+   \State $\lambda\gets \lambda'$ with probability $e^{-[energy(\mathbf{x},\lambda)-energy(\mathbf{x},\lambda')]^+/T}$
+   \Else
+   \State $\mathbf{x}'\gets neighbour(\mathbf{x})$
+   \State $\mathbf{x}\gets \mathbf{x}'$ with probability $e^{-[energy(\mathbf{x}',\lambda)-energy(\mathbf{x},\lambda)]^+/T}$
+   \EndIf
+   \EndFor
+   \State $T\gets T\cdot warmingRatio$
+   \EndWhile
+   \EndProcedure
+ \end{algorithmic}
+\end{algorithm}
+ The algorithm~\ref{alg:annealing} is the annealing process.
 
 \begin{figure}[htb]
   \centering
