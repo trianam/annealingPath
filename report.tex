@@ -259,25 +259,66 @@ equation~\eqref{eq:lagrangianFunProj}.
  \caption{Annealing}\label{alg:annealing}
  \begin{algorithmic}[1]
    \Procedure{annealing}{$\mathbf{x}$}
-   \State $\lambda\gets initialLambda$
+   \State $\lambda\gets initialLambda$\label{alg:annealing:initialize}
    \State $T\gets initialTemperature$
-   \While{not $terminationCondition()$}
-   \For{number of trials}
-   \State $changeLambda\gets$ true with $changeLambdaProb$
+   \While{not $terminationCondition()$}\label{alg:annealing:while}
+   \For{number of trials}\label{alg:annealing:for}
+   \State $changeLambda\gets$ true with $changeLambdaProb$\label{alg:annealing:lambdaProb}
    \If{$changeLambda$}
-   \State $\lambda'\gets neighbour(\lambda)$
-   \State $\lambda\gets \lambda'$ with probability $e^{-[energy(\mathbf{x},\lambda)-energy(\mathbf{x},\lambda')]^+/T}$
+   \State $\lambda'\gets neighbour(\lambda)$\label{alg:annealing:changeLambda}
+   \State $\lambda\gets \lambda'$ with probability $\me^{-([energy(\mathbf{x},\lambda)-energy(\mathbf{x},\lambda')]^+/T)}$
    \Else
-   \State $\mathbf{x}'\gets neighbour(\mathbf{x})$
-   \State $\mathbf{x}\gets \mathbf{x}'$ with probability $e^{-[energy(\mathbf{x}',\lambda)-energy(\mathbf{x},\lambda)]^+/T}$
+   \State $\mathbf{x}'\gets neighbour(\mathbf{x})$\label{alg:annealing:changeX}
+   \State $\mathbf{x}\gets \mathbf{x}'$ with probability $\me^{-([energy(\mathbf{x}',\lambda)-energy(\mathbf{x},\lambda)]^+/T)}$
    \EndIf
    \EndFor
-   \State $T\gets T\cdot warmingRatio$
+   \State $T\gets T\cdot warmingRatio$\label{alg:annealing:cooling}
    \EndWhile
    \EndProcedure
  \end{algorithmic}
 \end{algorithm}
- The algorithm~\ref{alg:annealing} is the annealing process.
+
+The algorithm~\ref{alg:annealing} is the annealing process, on
+line~\ref{alg:annealing:initialize} $\lambda$ and the
+temperature are initialized; the \emph{while} on
+line~\ref{alg:annealing:while} is the main loop and the terminating
+condition\footnote{For the animation there isn't a terminating
+  condition.} is given by a minimum temperature or a minimum variation of
+energy between two iterations; the \emph{for} at
+line~\ref{alg:annealing:for} repeat the annealing move for a certain
+number of trials, on each iteration the algorithm probabilistically
+try to make a move of the state of the system, first on
+line~\ref{alg:annealing:lambdaProb} make a choice if moving in the
+lagrangian space or in the space of the path, after that based on that
+choice try to move the system in a neighbouring state - in the
+lagrangian space at
+line~\ref{alg:annealing:changeLambda} or in the path space at
+line~\ref{alg:annealing:changeX} - the choice is made
+probabilistically in the meaning that if the energy increase in the
+lagrangian space or decrease in the path space the probability of
+chosing the new state is 1, if the energy decrease in the lagrangian
+space or increase in the path space then the new state is accepted
+with a probability that is\footnote{Note that $[x]^+=\max(0,x)$.}:
+$$\exp(-\frac{\Delta energy}{T}).$$
+Finally at the end of every trial set,
+at line~\ref{alg:annealing:cooling}, the temperature $T$ is cooled by
+a certain factor.
+
+The $neighbour$ function choose a neighbour of the state and is
+defined depending on the input
+\begin{itemize}
+  \item for $\lambda$ move uniformly in a range $[-maxLambdaPert, maxLambdaPert]$;
+  \item for path pick randomly one of the nodes, except the extremes,
+    then pick an angle uniformly\footnote{Or with a
+      gaussion with mean in the perpendicular direction of the two
+      neighbouring points.} in $[0,2\pi]$.
+\end{itemize}
+
+The $energy$ function is equivalent of $L_d$ in the
+equation~\eqref{eq:lagrangianFunProj}, the annealing process
+find a saddle point probabilistically increasing the energy moving
+$\lambda$ and 
+decreasing the energy moving the points.
 
 \begin{figure}[htb]
   \centering
@@ -285,8 +326,16 @@ equation~\eqref{eq:lagrangianFunProj}.
   \caption{Final configuration after annealing.}
   \label{fig:final}
 \end{figure}
+In figure~\ref{fig:final} is visible the state of the system after a
+certain amount of iterations.
 
 \section{Conclusions}
+
+\nocite{*}
+\phantomsection
+\addcontentsline{toc}{section}{\refname}
+\bibliographystyle{apalike}
+\bibliography{report}
 
 \end{document}
 
