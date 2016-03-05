@@ -13,7 +13,7 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{algorithm}
-\usepackage[noend]{algpseudocode}
+\usepackage{algpseudocode}
 
 \newcommand{\me}{\ensuremath{\mathrm{e}}}
 \newcommand{\md}{\ensuremath{\mathrm{d}}}
@@ -262,7 +262,7 @@ equation~\eqref{eq:lagrangianFunProj}.
    \State $\lambda\gets initialLambda$\label{alg:annealing:initialize}
    \State $T\gets initialTemperature$
    \While{not $terminationCondition()$}\label{alg:annealing:while}
-   \For{number of trials}\label{alg:annealing:for}
+   \ForAll{number of trials}\label{alg:annealing:for}
    \State $changeLambda\gets$ true with $changeLambdaProb$\label{alg:annealing:lambdaProb}
    \If{$changeLambda$}
    \State $\lambda'\gets neighbour(\lambda)$\label{alg:annealing:changeLambda}
@@ -315,7 +315,9 @@ defined depending on the input
 \end{itemize}
 
 The $energy$ function is equivalent of $L_d$ in the
-equation~\eqref{eq:lagrangianFunProj}, the annealing process
+equation~\eqref{eq:lagrangianFunProj}:
+$$energy(\mathbf{x},\lambda)=length(\mathbf{x})+\lambda$$
+the annealing process
 find a saddle point probabilistically increasing the energy moving
 $\lambda$ and 
 decreasing the energy moving the points.

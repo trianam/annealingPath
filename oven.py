@@ -11,7 +11,7 @@ class Oven:
         self._minDeltaEnergy = minDeltaEnergy
         self._pauseAnimation = False
 
-    def anneal(self, path, useLength=True, neighbourMode=0):
+    def anneal(self, path, useLength=True):
         """
         Run the simulated annealing process. Start from given initial
         temperature and start a loop. In each iteration make a certain
@@ -27,13 +27,13 @@ class Oven:
             print('t:{0:<22};e:{1:<22};l:{2:<22};a:{3:<22};c:{4:<22};l:{5:<22}'.format(temperature, path.energy, path.length, path.meanAngle, path.costraints, path.vlambda))
             initialEnergy = path.energy
             for i in range(self._trials):
-                path.tryMove(temperature, useLength, neighbourMode)
+                path.tryMove(temperature, useLength)
             finalEnergy = path.energy
             temperature = temperature * self._warmingRatio
             if (temperature < self._minTemperature) or (abs(initialEnergy - finalEnergy) < self._minDeltaEnergy):
                 break
 
-    def annealAnimation(self, path, figure, axes, useLength=True, neighbourMode=0):
+    def annealAnimation(self, path, figure, axes, useLength=True):
         figure.canvas.mpl_connect('key_press_event', self._onClick)
 
         self._aniLine, = axes.plot([], [], 'ko-')
@@ -46,7 +46,7 @@ class Oven:
         self._textLam = axes.text(0.52, 0.85, '', transform=axes.transAxes)
         self._path = path
         self._temperature = self._initialTemperature
-        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=6, blit=True, repeat=False, fargs=(useLength,neighbourMode), init_func=self._init)
+        ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=6, blit=True, repeat=False, fargs=(useLength), init_func=self._init)
 
     def _init(self):
         self._aniLine.set_data([], [])
@@ -60,10 +60,10 @@ class Oven:
         
         return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
         
-    def _animate(self, i, useLength, neighbourMode):
+    def _animate(self, i, useLength):
         if not self._pauseAnimation:
             for i in range(self._trials):
-                self._path.tryMove(self._temperature, useLength, neighbourMode)
+                self._path.tryMove(self._temperature, useLength)
 
             self._aniLine.set_data(self._path.vertexes[:,0], self._path.vertexes[:,1])
             self._aniSpline.set_data(self._path.spline[:,0], self._path.spline[:,1])

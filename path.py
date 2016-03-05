@@ -15,14 +15,15 @@ class Path:
     _numPointsSplineMultiplier = 10
     _numSigmaGauss = 9
     
-    def __init__(self, initialVertexes, scene):
+    def __init__(self, initialVertexes, scene, neighbourMode):
         self._vertexes = initialVertexes
         self._scene = scene
+        self._neighbourmode = neighbourMode
         self._dimR = self._vertexes.shape[0]
         self._dimC = self._vertexes.shape[1]
         self._numPointsSpline = self._numPointsSplineMultiplier * self._dimR
         self._spline = self._splinePoints(self._vertexes)
-        self._vlambda = self._initialVlambda 
+        self._vlambda = self._initialVlambda
         self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._spline, self._vlambda)
 
     @property
@@ -54,7 +55,7 @@ class Path:
         return self._vlambda
     
     
-    def tryMove(self, temperature, useLength, neighbourMode):
+    def tryMove(self, temperature, useLength):
         """
         Move the path or lambda multipiers in a neighbouring state,
         with a certain acceptance probability.
@@ -84,7 +85,7 @@ class Path:
             newVertexes = np.copy(self._vertexes)
             movedV = random.randint(1,self._dimR - 2) #don't change extremes
 
-            if(neighbourMode == 0):
+            if(self._neighbourMode == 0):
                 moveC = random.randint(0,self._dimC - 1)
                 newVertexes[movedV][moveC] = newVertexes[movedV][moveC] + (random.uniform(-1.,1.) * self._maxVertexPert)
             else:
@@ -135,6 +136,7 @@ class Path:
 
         costraints = self._calculateCostraints(spline)
 
+        #TODO: calculate energy based on self._neighbourMode
         energy = meanAngle + vlambda * costraints
         
         return (energy, length, meanAngle, costraints)
