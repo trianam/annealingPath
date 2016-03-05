@@ -309,16 +309,29 @@ defined depending on the input
 \begin{itemize}
   \item for $\lambda$ move uniformly in a range $[-maxLambdaPert, maxLambdaPert]$;
   \item for path pick randomly one of the nodes, except the extremes,
-    then pick an angle uniformly\footnote{Or with a
+    then pick an angle in $[0,2\pi]$ and a distance
+    uniformly\footnote{Or with a
       gaussion with mean in the perpendicular direction of the two
-      neighbouring points.} in $[0,2\pi]$.
+      neighbouring points.} in a specific range.
 \end{itemize}
 
 The $energy$ function is equivalent of $L_d$ in the
 equation~\eqref{eq:lagrangianFunProj}:
-$$energy(\mathbf{x},\lambda)=length(\mathbf{x})+\lambda$$
-the annealing process
-find a saddle point probabilistically increasing the energy moving
+$$energy(\mathbf{x},\lambda)=length(\mathbf{x})+\lambda\cdot
+constraints(\mathbf{x})$$
+or
+$$energy(\mathbf{x},\lambda)=angle(\mathbf{x})+\lambda\cdot
+constraints(\mathbf{x})$$
+depending of the choosen method. The function $length(\mathbf{x})$
+returns the total length of the path represented by the points
+$\mathbf{x}$, $angle(\mathbf{x})$ is the mean complementar angle between
+every pair of consecutive segments in the path $\mathbf{x}$, and
+$constraints(\mathbf{x})$ return the ratio between the points inside the
+obstacles and all the points of the
+B-spline obtained using the path $\mathbf{x}$ as control polygon.
+
+The annealing process
+find a saddle point probabilistically increasing the energy, moving
 $\lambda$ and 
 decreasing the energy moving the points.
 
