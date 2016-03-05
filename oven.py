@@ -24,7 +24,7 @@ class Oven:
         """
         temperature = self._initialTemperature
         while True:
-            print('t:{0:<22};e:{1:<22};l:{2:<22};a:{3:<22};c:{4:<22};l:{5:<22}'.format(temperature, path.energy, path.length, path.meanAngle, path.costraints, path.vlambda))
+            print('t:{0:<22};e:{1:<22};l:{2:<22};a:{3:<22};c:{4:<22};l:{5:<22}'.format(temperature, path.energy, path.length, path.meanAngle, path.constraints, path.vlambda))
             initialEnergy = path.energy
             for i in range(self._trials):
                 path.tryMove(temperature, neighbourMode)
@@ -71,7 +71,7 @@ class Oven:
             self._textEner.set_text('Energy = {}'.format(self._path.energy))
             self._textLen.set_text('Length = {}'.format(self._path.length))
             self._textAng.set_text('Angle  = {}'.format(self._path.meanAngle))
-            self._textCos.set_text('Costr. = {}'.format(self._path.costraints))
+            self._textCos.set_text('Costr. = {}'.format(self._path.constraints))
             self._textLam.set_text('Lambda = {}'.format(self._path.vlambda))
 
             self._temperature = self._temperature * self._warmingRatio

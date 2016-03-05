@@ -6,7 +6,7 @@ import scipy.interpolate as si
 class Path:
     """
     Represents a state of system in the lagrangian space (path
-    configurations X costraint).
+    configurations X constraint).
     """
     _maxVlambdaPert = 100.
     _maxVertexPert = 0.01
@@ -24,7 +24,7 @@ class Path:
         self._numPointsSpline = self._numPointsSplineMultiplier * self._dimR
         self._spline = self._splinePoints(self._vertexes)
         self._vlambda = self._initialVlambda 
-        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._spline, self._vlambda)
+        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentConstraints = self._initializePathEnergy(self._vertexes, self._spline, self._vlambda)
 
     @property
     def vertexes(self):
@@ -47,8 +47,8 @@ class Path:
         return self._currentMeanAngle
     
     @property
-    def costraints(self):
-        return self._currentCostraints
+    def constraints(self):
+        return self._currentConstraints
     
     @property
     def vlambda(self):
@@ -62,7 +62,7 @@ class Path:
         Pick a random vertex (except extremes), and move
         it in a random direction (with a maximum perturbance).
         Use a lagrangian relaxation because we need to evaluate
-        min(measure(path)) given the costraint that all quadrilaters
+        min(measure(path)) given the constraint that all quadrilaters
         formed by 4 consecutive points in the path must be collision
         free; where measure(path) is, depending of the choose method,
         the length of the path or the mean
@@ -110,7 +110,7 @@ class Path:
 #                newVertexes[movedV][1] = newVertex[1]
                             
                 
-            newSpline,newEnergy,newLength,newMeanAngle,newCostraints = self._calculatePathEnergyVertex(newVertexes, movedV)
+            newSpline,newEnergy,newLength,newMeanAngle,newConstraints = self._calculatePathEnergyVertex(newVertexes, movedV)
 
             #attention, different formula from above
             if (newEnergy < self._currentEnergy) or (math.exp(-(newEnergy-self._currentEnergy)/temperature) >= random.random()):
@@ -119,7 +119,7 @@ class Path:
                 self._currentEnergy = newEnergy
                 self._currentLength = newLength
                 self._currentMeanAngle = newMeanAngle
-                self._currentCostraints = newCostraints
+                self._currentConstraints = newConstraints
 
     def _truncGauss(self, mu, sigma, bottom, top):
         v = random.gauss(mu,sigma)
@@ -138,40 +138,40 @@ class Path:
             meanAngle = meanAngle + self._calculateAngle(vertexes[i-1], vertexes[i], vertexes[i+1])
         meanAngle = meanAngle / (self._dimR - 2)
 
-        costraints = self._calculateCostraints(spline)
+        constraints = self._calculateConstraints(spline)
 
         if self._useLength:
-            energy = length + vlambda * costraints
+            energy = length + vlambda * constraints
         else:
-            energy = meanAngle + vlambda * costraints
+            energy = meanAngle + vlambda * constraints
 
-        return (energy, length, meanAngle, costraints)
+        return (energy, length, meanAngle, constraints)
                 
 
     def _calculatePathEnergyLambda(self, vlambda):
         """
         calculate the energy when lambda is moved.
         """
-        return (self._currentEnergy - (self._vlambda * self._currentCostraints) + (vlambda * self._currentCostraints))
+        return (self._currentEnergy - (self._vlambda * self._currentConstraints) + (vlambda * self._currentConstraints))
     
     def _calculatePathEnergyVertex(self, vertexes, movedV):
         """
         calculate the energy when a vertex is moved and returns it.
         """
         spline = self._splinePoints(vertexes)
-        costraints = self._calculateCostraints(spline)
+        constraints = self._calculateConstraints(spline)
         if self._useLength:
             length = self._calculateTotalLength(vertexes, movedV)
             #meanAngle = self._currentMeanAngle
             meanAngle = 0.
-            energy = length + self._vlambda * costraints
+            energy = length + self._vlambda * constraints
         else:
             #length = self._currentLength
             length = 0.
             meanAngle = self._calculateMeanAngle(vertexes, movedV)
-            energy = meanAngle + self._vlambda * costraints
+            energy = meanAngle + self._vlambda * constraints
             
-        return (spline, energy, length, meanAngle, costraints)
+        return (spline, energy, length, meanAngle, constraints)
 
     def _calculateTotalLength(self, vertexes, movedV):
         length = self._currentLength
@@ -193,9 +193,9 @@ class Path:
 
         return meanAngle
 
-    def _calculateCostraints(self, spline):
+    def _calculateConstraints(self, spline):
         """
-        calculate the costraints function. Is the ratio of the points
+        calculate the constraints function. Is the ratio of the points
         of the calculated spline that are inside obstacles respect the
         total number of points of the spline.
         """
@@ -204,9 +204,9 @@ class Path:
             if self._scene.isInside(p):
                 pointsInside = pointsInside + 1
 
-        costraints = pointsInside / self._numPointsSpline
+        constraints = pointsInside / self._numPointsSpline
 
-        return costraints
+        return constraints
 
     def _splinePoints(self, vertexes):
         x = vertexes[:,0]
