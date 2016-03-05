@@ -15,15 +15,15 @@ class Path:
     _numPointsSplineMultiplier = 10
     _numSigmaGauss = 9
     
-    def __init__(self, initialVertexes, scene, neighbourMode):
+    def __init__(self, initialVertexes, scene, useLength):
         self._vertexes = initialVertexes
         self._scene = scene
-        self._neighbourmode = neighbourMode
+        self._useLength = useLength
         self._dimR = self._vertexes.shape[0]
         self._dimC = self._vertexes.shape[1]
         self._numPointsSpline = self._numPointsSplineMultiplier * self._dimR
         self._spline = self._splinePoints(self._vertexes)
-        self._vlambda = self._initialVlambda
+        self._vlambda = self._initialVlambda 
         self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentCostraints = self._initializePathEnergy(self._vertexes, self._spline, self._vlambda)
 
     @property
@@ -55,7 +55,7 @@ class Path:
         return self._vlambda
     
     
-    def tryMove(self, temperature, useLength):
+    def tryMove(self, temperature, neighbourMode):
         """
         Move the path or lambda multipiers in a neighbouring state,
         with a certain acceptance probability.
@@ -67,6 +67,10 @@ class Path:
         free; where measure(path) is, depending of the choose method,
         the length of the path or the mean
         of the supplementary angles of each pair of edges of the path.
+        If neighbourMode=0 then move the node uniformly, if
+        neighbourMode=1 then move the node with gaussian probabilities
+        with mean in the perpendicular direction respect to the
+        previous-next nodes axis.
         """
 
         moveVlambda = random.random() < self._changeVlambdaProbability
@@ -85,7 +89,7 @@ class Path:
             newVertexes = np.copy(self._vertexes)
             movedV = random.randint(1,self._dimR - 2) #don't change extremes
 
-            if(self._neighbourMode == 0):
+            if(neighbourMode == 0):
                 moveC = random.randint(0,self._dimC - 1)
                 newVertexes[movedV][moveC] = newVertexes[movedV][moveC] + (random.uniform(-1.,1.) * self._maxVertexPert)
             else:
@@ -106,7 +110,7 @@ class Path:
 #                newVertexes[movedV][1] = newVertex[1]
                             
                 
-            newSpline,newEnergy,newLength,newMeanAngle,newCostraints = self._calculatePathEnergyVertex(newVertexes, movedV, useLength)
+            newSpline,newEnergy,newLength,newMeanAngle,newCostraints = self._calculatePathEnergyVertex(newVertexes, movedV)
 
             #attention, different formula from above
             if (newEnergy < self._currentEnergy) or (math.exp(-(newEnergy-self._currentEnergy)/temperature) >= random.random()):
@@ -136,9 +140,11 @@ class Path:
 
         costraints = self._calculateCostraints(spline)
 
-        #TODO: calculate energy based on self._neighbourMode
-        energy = meanAngle + vlambda * costraints
-        
+        if self._useLength:
+            energy = length + vlambda * costraints
+        else:
+            energy = meanAngle + vlambda * costraints
+
         return (energy, length, meanAngle, costraints)
                 
 
@@ -148,14 +154,14 @@ class Path:
         """
         return (self._currentEnergy - (self._vlambda * self._currentCostraints) + (vlambda * self._currentCostraints))
     
-    def _calculatePathEnergyVertex(self, vertexes, movedV, useLength):
+    def _calculatePathEnergyVertex(self, vertexes, movedV):
         """
         calculate the energy when a vertex is moved and returns it.
         """
         spline = self._splinePoints(vertexes)
         costraints = self._calculateCostraints(spline)
-        if useLength:
-            length = self._calculateLength(vertexes, movedV)
+        if self._useLength:
+            length = self._calculateTotalLength(vertexes, movedV)
             #meanAngle = self._currentMeanAngle
             meanAngle = 0.
             energy = length + self._vlambda * costraints
@@ -167,7 +173,7 @@ class Path:
             
         return (spline, energy, length, meanAngle, costraints)
 
-    def _calculateLength(self, vertexes, movedV):
+    def _calculateTotalLength(self, vertexes, movedV):
         length = self._currentLength
         
         length = length - self._calculateLength(self._vertexes[movedV], self._vertexes[movedV-1]) + self._calculateLength(vertexes[movedV], vertexes[movedV-1])

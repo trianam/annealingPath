@@ -30,7 +30,7 @@ class Voronizator:
             self._graph.node[node]['index'] = i
             i = i + 1
 
-    def createShortestPath(self, start, end, attachMode='near', minEdgeLen=0., maxEdgeLen=0., prune=True, neighbourMode=1):
+    def createShortestPath(self, start, end, attachMode='near', minEdgeLen=0., maxEdgeLen=0., prune=True, useLength=True):
         if attachMode=='near':
             self._attachToGraphNear(start, end, prune)
         elif attachMode=='all':
@@ -66,7 +66,7 @@ class Voronizator:
                 else:
                     i = i+1
 
-        return path.Path(np.array(shortestPath), self._scene, neighbourMode)
+        return path.Path(np.array(shortestPath), self._scene, useLength)
 
     def plotSites(self, plotter):
         if self._sites.size > 0:
