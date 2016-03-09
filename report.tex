@@ -150,7 +150,29 @@ to make the initial path shorter, and on the same time keep the path
 in a state where is possible to apply a specific spline without
 colliding with obstacles.
 
-\subsubsection{Spline}\label{sec:spline}
+\subsubsection{Splines and B-splines}\label{sec:spline}
+A \emph{spline} $S(t)$ is a parametric function - defined in a certain space
+(bidimensional in this work) as a
+function of a certain parameter $t$ - that is composed from polynomial
+functions, piecewise in intervals in $t$. \emph{B-splines} are splines
+defined with a specific base.
+
+Formally we define the parametric domain
+$$[a,b]\subset\mR$$
+and a partition of that space defined by the \emph{nodes}
+$$\tau = {\tau_0,\dots,\tau_l}$$
+such that $a=\tau_0<\tau_1<\dots<\tau_{l-1}<\tau_l=b$ forming the
+intervals
+$$
+I_i=
+\begin{cases}
+  [\tau_i,\tau_{i+1}) & \mbox{if } i=0,\dots,l-2\\
+    [\tau_i,\tau_{i+1}] & \mbox{if } i=l-1\\
+\end{cases}
+$$
+is possible to define the following spaces:
+\paragraph{piecewise polynomial functions space}
+\paragraph{classic spline functions space}   
 
 \subsubsection{Lagrangian relaxation in general}
 A general constrained discrete optimization problem can be expressed in
@@ -310,7 +332,7 @@ defined depending on the input
   \item for $\lambda$ move uniformly in a range $[-maxLambdaPert, maxLambdaPert]$;
   \item for path pick randomly one of the nodes, except the extremes,
     then pick an angle in $[0,2\pi]$ and a distance
-    uniformly\footnote{Or with a
+    uniformly\footnote{Or at choice with a
       gaussion with mean in the perpendicular direction of the two
       neighbouring points.} in a specific range.
 \end{itemize}
