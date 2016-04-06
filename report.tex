@@ -57,10 +57,19 @@
 \thispagestyle{empty}
 \vfill
 \begin{abstract}
-  This work is about a simulated annealing method for performing path
+  This work is about a \emph{simulated annealing} method for performing path
   planning.
-\end{abstract}
 
+  A \emph{B-spline} curve is used to represents the path, and the
+  position of the control vertexes is considered as the status of the
+  system. The number of points of the curve that cross an obstacle
+  is the measure of a \emph{Lagrangian multiplier} that, used together with
+  the status of the system, form a multidimensional surface on which
+  saddle points are the desired configurations of (local) minimal path that
+  don't cross obstacles. A simulated annealing method is finally used
+  to find the optimal between those saddle points.
+\end{abstract}
+\newpage
 \section{Introduction}
 The \emph{Path planning} problem is a common problem in robotics, the
 purpose is to find the best route in a bidimensional (or
@@ -69,89 +78,9 @@ another. Many techniques exists for calculating the path, in this work
 we analyze the application to this problem of a statistical method
 commonly used in optimization problems.
 
-\section{Path planning}
-In this project the space is bidimensional and the obstacles are
-represented as an array of vertexes and are closed polygons - the last
-vertex is connected to the first one. The path is calculated from a
-provided point to another provided point in the space, and is assumed
-that the user don't choose one or both of those points inside an
-obstacle.
+\section{Prerequisites}
 
-Is also possible - and advised - to add a bounding box around the
-scene.
-
-The path planning is performed doing a simulated annealing using, as the state of the system, the
-configuration of the vertexes of the path; a Dijkstra algorithm is
-performed for finding the initial state of the system, using a pruned 
-Voronoi diagram as basis.
-
-\section{Algorithm}
-\subsection{Initialization}
-The first phase is to initialize the method with an initial state. For
-doing that, the algorithm first build a graph of possible routes
-around obstacles, then find a shortest path on that graph, and finally
-normalize that path.
-
-\subsubsection{Building the graph}
-\begin{enumerate}
-\item\label{item:distDots} initially the algorithm distribute a series of points along the
-  edges of the obstacles and of the bounding box;
-\item\label{item:voronoi} then build a Voronoi
-  diagram using that points as input sites;
-\item\label{item:graph} after that, transform the diagram in a graph, using the
-  vertexes and edges of the cells as nodes and edges of the graph;
-\item\label{item:pruning} then
-  delete all the edges that cross an obstacle;
-\item\label{item:startEnd} the final step is to connect the desired start and end points to the
-  graph - is possible to use two different methods for connecting
-  those points, one is to connect to the nearest visible vertex of the
-  graph, the other one is to connect to every visible vertex of the
-  graph.
-\end{enumerate}
-
-The result is a sparse
-graph that embrace all obstacles and that maintain equal distance from
-obstacles, like in figure~\ref{fig:voronoi}.
-\begin{figure}[htb]
-  \centering
-  \includegraphics[width=\textwidth]{img/voronoi.pdf}
-  \caption{Pruned Voronoi graph.}
-  \label{fig:voronoi}
-\end{figure}
-
-In the figure the obstacles are the orange polygons; the bounding box
-coincide with the border of the plot; the blue dots are the ones
-distributed in point~\ref{item:distDots}; the green points are the
-vertexes of the pruned Voronoi diagram, constructed on
-points~\ref{item:voronoi}, \ref{item:graph}, and~\ref{item:pruning};
-the two red dots are the start and end vertexes added on point~\ref{item:startEnd}.
-Note that there are also non influential disconnected graphs inside
-the obstacles.
-
-\subsubsection{Shortest path in graph}
-The algorithm need to find a shortest path after the graph
-generation. For doing that use the Dijkstra algorithm from the start
-point to the end point.
-
-\subsubsection{Normalization of path}
-The purpose of the normalization phase is to have a path with vertexes
-that have a certain distance between them.
-
-In the specific the
-algorithm go by all the vertexes of the shortest path, and measure the
-distance from the previous vertex. If the distance is shorter than a
-provided threshold merge the current and previous vertexes in
-a single one located in the middle. If the distance is longer than
-another provided threshold create a new vertex in the middle between
-the current and the previous ones.
-
-\subsection{Annealing}
-The annealing phase is the key part of the algorithm, the purpose is
-to make the initial path shorter, and on the same time keep the path
-in a state where is possible to apply a specific spline without
-colliding with obstacles.
-
-\subsubsection{Splines}\label{sec:spline}
+\subsection{Splines}\label{sec:spline}
 A \emph{spline} $\mathbf{S}(t)$ is a parametric function - defined in a certain space
 (bidimensional in this work) as a
 function of a certain parameter $t$ - that is composed from polynomial
@@ -302,7 +231,7 @@ called \emph{control vertexes} and the polygon defined by them is
 called \emph{control polygon} and they can be used to control the
 shape of the curve.
 
-\subsubsection{Lagrangian relaxation in general}
+\subsection{Lagrangian relaxation}
 A general constrained discrete optimization problem can be expressed in
 the form:
 \begin{equation}\label{eq:opt}
@@ -348,7 +277,96 @@ point if:
 for all $x\in\mathcal{N}(x^*)$ and for all $\lambda\in\Lambda$, where
 $\mathcal{N}(x^*)$ is the set of all neighbours of $x^*$.
 
-\subsubsection{Lagrangian relaxation in project}
+For resolving the optimization problem~\eqref{eq:opt} is necessary to
+calculate all the discrete saddle points $(x^*,\lambda^*)$ using some
+optimization method (i.e. simulated annealing) on the surface
+represented by
+equation~\eqref{eq:lagrangianFun}, and then choose
+the one that minimize $f(x^*)$. $x^*$ is then the desired minimum.
+
+\section{Path planning}
+In this project the space is bidimensional and the obstacles are
+represented as an array of vertexes and are closed polygons - the last
+vertex is connected to the first one. The path is calculated from a
+provided point to another provided point in the space, and is assumed
+that the user don't choose one or both of those points inside an
+obstacle.
+
+Is also possible - and advised - to add a bounding box around the
+scene.
+
+The path planning is performed doing a simulated annealing using, as the state of the system, the
+configuration of the vertexes of the path; a Dijkstra algorithm is
+performed for finding the initial state of the system, using a pruned 
+Voronoi diagram as basis.
+
+\section{Algorithm}
+\subsection{Initialization}
+The first phase is to initialize the method with an initial state. For
+doing that, the algorithm first build a graph of possible routes
+around obstacles, then find a shortest path on that graph, and finally
+normalize that path.
+
+\subsubsection{Building the graph}
+\begin{enumerate}
+\item\label{item:distDots} initially the algorithm distribute a series of points along the
+  edges of the obstacles and of the bounding box;
+\item\label{item:voronoi} then build a Voronoi
+  diagram using that points as input sites;
+\item\label{item:graph} after that, transform the diagram in a graph, using the
+  vertexes and edges of the cells as nodes and edges of the graph;
+\item\label{item:pruning} then
+  delete all the edges that cross an obstacle;
+\item\label{item:startEnd} the final step is to connect the desired start and end points to the
+  graph - is possible to use two different methods for connecting
+  those points, one is to connect to the nearest visible vertex of the
+  graph, the other one is to connect to every visible vertex of the
+  graph.
+\end{enumerate}
+
+The result is a sparse
+graph that embrace all obstacles and that maintain equal distance from
+obstacles, like in figure~\ref{fig:voronoi}.
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{img/voronoi.pdf}
+  \caption{Pruned Voronoi graph.}
+  \label{fig:voronoi}
+\end{figure}
+
+In the figure the obstacles are the orange polygons; the bounding box
+coincide with the border of the plot; the blue dots are the ones
+distributed in point~\ref{item:distDots}; the green points are the
+vertexes of the pruned Voronoi diagram, constructed on
+points~\ref{item:voronoi}, \ref{item:graph}, and~\ref{item:pruning};
+the two red dots are the start and end vertexes added on point~\ref{item:startEnd}.
+Note that there are also non influential disconnected graphs inside
+the obstacles.
+
+\subsubsection{Shortest path in graph}
+The algorithm need to find a shortest path after the graph
+generation. For doing that use the Dijkstra algorithm from the start
+point to the end point.
+
+\subsubsection{Normalization of path}
+The purpose of the normalization phase is to have a path with vertexes
+that have a certain distance between them.
+
+In the specific the
+algorithm go by all the vertexes of the shortest path, and measure the
+distance from the previous vertex. If the distance is shorter than a
+provided threshold merge the current and previous vertexes in
+a single one located in the middle. If the distance is longer than
+another provided threshold create a new vertex in the middle between
+the current and the previous ones.
+
+\subsection{Annealing}
+The annealing phase is the key part of the algorithm, the purpose is
+to make the initial path shorter, and on the same time keep the path
+in a state where is possible to apply a specific spline without
+colliding with obstacles.
+
+\subsubsection{Lagrangian relaxation applied to the project}
 In the project the variable space $X$ is composed of all possible
 configuration of the path, or in other words is the vector
 $\mathbf{v}=(\mathbf{v}_1,\dots,\mathbf{v}_n)$ of all $n$ ordered
@@ -495,8 +513,7 @@ decreasing the energy moving the points.
 In figure~\ref{fig:final} is visible the state of the system after a
 certain amount of iterations.
 
-\section{Conclusions}
-
+\newpage
 \nocite{*}
 \phantomsection
 \addcontentsline{toc}{section}{\refname}
