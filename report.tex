@@ -180,18 +180,18 @@ define the \emph{B-splines base} in section~\ref{sec:bsplines}.
 \emph{B-splines} are splines defined with a specific base. In this
 paragraph we consider only the classic splines $S_{m,\tau}$ and not
 the generalized splines $S_{m,\tau,M}$, furthermore we consider the
-order $k=m+1$.
+\emph{order}: $k=m+1$.
 
 For defining the B-splines we need to extend the partition vector
 $\tau=\{\tau_0,\cdots,\tau_l\}$ with $k-1$ nodes to the left and $k-1$ to
 the right, so we define a new vector
 $$
-T=\{t_0,\dots,t_{k-1},t_{k-1},\dots,t_{n+1},t_{n+2},\dots,t_{n+k}\}
+T=\{t_0,\dots,t_{k-2},t_{k-1},\dots,t_{n+1},t_{n+2},\dots,t_{n+k}\}
 $$
 such that
 $$
-t_0\leq\dots\leq t_{k-2}\leq t_{k-1}\equiv\tau_0\equiv a<\dots<
-t_{n+1}\equiv\tau_l\equiv b\leq t_{n+2}\leq\dots\leq t_{n+k}.
+t_0\leq\dots\leq t_{k-2}\leq \{t_{k-1}\equiv\tau_0\equiv a\}<\dots<
+\{t_{n+1}\equiv\tau_l\equiv b\}\leq t_{n+2}\leq\dots\leq t_{n+k}.
 $$
 $\tau$ have $l+1$ elements, so we can calculate the value of
 $$
