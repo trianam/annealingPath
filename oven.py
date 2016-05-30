@@ -24,7 +24,7 @@ class Oven:
         """
         temperature = self._initialTemperature
         while True:
-            print('t:{0:<22};e:{1:<22};l:{2:<22};a:{3:<22};c:{4:<22};l:{5:<22}'.format(temperature, path.energy, path.length, path.meanAngle, path.constraints, path.vlambda))
+            print('t:{0:<22};e:{1:<22};l:{2:<22};a:{3:<22};a:{4:<22};c:{5:<22};l:{6:<22}'.format(temperature, path.energy, path.length, path.meanAngle, path.maxAngle, path.constraints, path.vlambda))
             initialEnergy = path.energy
             for i in range(self._trials):
                 path.tryMove(temperature, neighbourMode)
@@ -40,13 +40,21 @@ class Oven:
         self._aniSpline, = axes.plot([], [], 'r-', lw=2)
         self._textTemp = axes.text(0.02, 0.95, '', transform=axes.transAxes)
         self._textEner = axes.text(0.02, 0.90, '', transform=axes.transAxes)
-        self._textLen = axes.text(0.02, 0.85, '', transform=axes.transAxes)
-        self._textAng = axes.text(0.52, 0.95, '', transform=axes.transAxes)
+        self._textLam = axes.text(0.02, 0.85, '', transform=axes.transAxes)
+        self._textLen = axes.text(0.52, 0.95, '', transform=axes.transAxes)
+        self._textMeanAng = axes.text(0.52, 0.95, '', transform=axes.transAxes)
+        self._textMaxAng = axes.text(0.52, 0.95, '', transform=axes.transAxes)
         self._textCos = axes.text(0.52, 0.90, '', transform=axes.transAxes)
-        self._textLam = axes.text(0.52, 0.85, '', transform=axes.transAxes)
         self._path = path
         self._temperature = self._initialTemperature
         self._ani = matplotlib.animation.FuncAnimation(figure, self._animate, interval=10, blit=True, repeat=False, fargs=(neighbourMode,), init_func=self._init)
+        if path.optimizeVal != 'length':
+            self._textLen.set_visible(False)
+        if path.optimizeVal != 'meanAngle':
+            self._textMeanAng.set_visible(False)
+        if path.optimizeVal != 'maxAngle':
+            self._textMaxAng.set_visible(False)
+
 
     def _init(self):
         self._aniLine.set_data([], [])
@@ -54,11 +62,12 @@ class Oven:
         self._textTemp.set_text('')
         self._textEner.set_text('')
         self._textLen.set_text('')
-        self._textAng.set_text('')
+        self._textMeanAng.set_text('')
+        self._textMaxAng.set_text('')
         self._textCos.set_text('')
         self._textLam.set_text('')
         
-        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
+        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textMeanAng, self._textMaxAng, self._textCos, self._textLam
         
     def _animate(self, i, neighbourMode):
         if not self._pauseAnimation:
@@ -67,16 +76,17 @@ class Oven:
 
             self._aniLine.set_data(self._path.vertexes[:,0], self._path.vertexes[:,1])
             self._aniSpline.set_data(self._path.spline[:,0], self._path.spline[:,1])
-            self._textTemp.set_text('temp.  = {}'.format(self._temperature))
+            self._textTemp.set_text('Temp.  = {}'.format(self._temperature))
             self._textEner.set_text('Energy = {}'.format(self._path.energy))
             self._textLen.set_text('Length = {}'.format(self._path.length))
-            self._textAng.set_text('Angle  = {}'.format(self._path.meanAngle))
+            self._textMeanAng.set_text('Mean Ang.  = {}'.format(self._path.meanAngle))
+            self._textMaxAng.set_text('Max Ang.  = {}'.format(self._path.maxAngle))
             self._textCos.set_text('Costr. = {}'.format(self._path.constraints))
             self._textLam.set_text('Lambda = {}'.format(self._path.vlambda))
 
             self._temperature = self._temperature * self._warmingRatio
 
-        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textAng, self._textCos, self._textLam
+        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textMeanAng, self._textMaxAng, self._textCos, self._textLam
 
     def _onClick(self, event):
         if event.key == ' ':

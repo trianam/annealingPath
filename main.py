@@ -32,7 +32,7 @@ voronoi = voronizator.Voronizator(scene)
 oven = oven.Oven(trials=100, warmingRatio=0.9)
 
 voronoi.makeVoroGraph()
-path = voronoi.createShortestPath(Vs, Ve, attachMode='near', minEdgeLen=0.05, maxEdgeLen=0.08, useLength=True)
+path = voronoi.createShortestPath(Vs, Ve, attachMode='near', minEdgeLen=0.05, maxEdgeLen=0.08, optimizeVal='length')
 #voronoi.calculateShortestPath(Vs, Ve, 'all')
 #oven.anneal(path, neighbourMode=1)
 oven.annealAnimation(path, fig, ax, neighbourMode=0)

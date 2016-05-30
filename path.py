@@ -15,16 +15,19 @@ class Path:
     _numPointsSplineMultiplier = 10
     _numSigmaGauss = 9
     
-    def __init__(self, initialVertexes, scene, useLength):
+    def __init__(self, initialVertexes, scene, optimizeVal):
+        """
+        optimizeVal can be: 'length', 'meanAngle', 'maxAngle'
+        """
         self._vertexes = initialVertexes
         self._scene = scene
-        self._useLength = useLength
+        self._optimizeVal = optimizeVal
         self._dimR = self._vertexes.shape[0]
         self._dimC = self._vertexes.shape[1]
         self._numPointsSpline = self._numPointsSplineMultiplier * self._dimR
         self._spline = self._splinePoints(self._vertexes)
         self._vlambda = self._initialVlambda 
-        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentConstraints = self._initializePathEnergy(self._vertexes, self._spline, self._vlambda)
+        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentMaxAngle, self._currentConstraints = self._initializePathEnergy(self._vertexes, self._spline, self._vlambda)
 
     @property
     def vertexes(self):
@@ -47,12 +50,20 @@ class Path:
         return self._currentMeanAngle
     
     @property
+    def maxAngle(self):
+        return self._currentMaxAngle
+    
+    @property
     def constraints(self):
         return self._currentConstraints
     
     @property
     def vlambda(self):
         return self._vlambda
+    
+    @property
+    def optimizeVal(self):
+        return self._optimizeVal
     
     
     def tryMove(self, temperature, neighbourMode):
@@ -110,7 +121,7 @@ class Path:
 #                newVertexes[movedV][1] = newVertex[1]
                             
                 
-            newSpline,newEnergy,newLength,newMeanAngle,newConstraints = self._calculatePathEnergyVertex(newVertexes, movedV)
+            newSpline,newEnergy,newLength,newMeanAngle,newMaxAngle,newConstraints = self._calculatePathEnergyVertex(newVertexes, movedV)
 
             #attention, different formula from above
             if (newEnergy < self._currentEnergy) or (math.exp(-(newEnergy-self._currentEnergy)/temperature) >= random.random()):
@@ -119,6 +130,7 @@ class Path:
                 self._currentEnergy = newEnergy
                 self._currentLength = newLength
                 self._currentMeanAngle = newMeanAngle
+                self._currentMaxAngle = newMaxAngle
                 self._currentConstraints = newConstraints
 
     def _truncGauss(self, mu, sigma, bottom, top):
@@ -134,18 +146,25 @@ class Path:
 
         
         meanAngle = 0.
+        maxAngle = 0.
         for i in range(1, self._dimR - 1): #from 1 to dimR-2
-            meanAngle = meanAngle + self._calculateAngle(vertexes[i-1], vertexes[i], vertexes[i+1])
+            currAngle = self._calculateAngle(vertexes[i-1], vertexes[i], vertexes[i+1])
+            meanAngle = meanAngle + currAngle
+            if currAngle > maxAngle:
+                maxAngle = currAngle
+            
         meanAngle = meanAngle / (self._dimR - 2)
 
         constraints = self._calculateConstraints(spline)
 
-        if self._useLength:
+        if self._optimizeVal == 'length':
             energy = length + vlambda * constraints
-        else:
+        elif self._optimizeVal == 'meanAngle':
             energy = meanAngle + vlambda * constraints
+        elif self._optimizeVal == 'maxAngle':
+            energy = maxAngle + vlambda * constraints
 
-        return (energy, length, meanAngle, constraints)
+        return (energy, length, meanAngle, maxAngle, constraints)
                 
 
     def _calculatePathEnergyLambda(self, vlambda):
@@ -160,18 +179,25 @@ class Path:
         """
         spline = self._splinePoints(vertexes)
         constraints = self._calculateConstraints(spline)
-        if self._useLength:
+        if self._optimizeVal == 'length':
             length = self._calculateTotalLength(vertexes, movedV)
             #meanAngle = self._currentMeanAngle
             meanAngle = 0.
+            maxAngle = 0.
             energy = length + self._vlambda * constraints
-        else:
+        elif self._optimizeVal == 'meanAngle':
             #length = self._currentLength
             length = 0.
             meanAngle = self._calculateMeanAngle(vertexes, movedV)
+            maxAngle = 0.
             energy = meanAngle + self._vlambda * constraints
+        elif self._optimizeVal == 'maxAngle':
+            length = 0.
+            meanAngle = 0.
+            maxAngle = self._calculateMaxAngle(vertexes, movedV)
+            energy = maxAngle + self._vlambda * constraints
             
-        return (spline, energy, length, meanAngle, constraints)
+        return (spline, energy, length, meanAngle, maxAngle, constraints)
 
     def _calculateTotalLength(self, vertexes, movedV):
         length = self._currentLength
@@ -192,6 +218,15 @@ class Path:
             meanAngle = meanAngle + (self._calculateAngle(vertexes[movedV], vertexes[movedV+1], vertexes[movedV+2]) - self._calculateAngle(self._vertexes[movedV], self._vertexes[movedV+1], self._vertexes[movedV+2])) / (self._dimR - 2)
 
         return meanAngle
+
+    def _calculateMaxAngle(self, vertexes, movedV):
+        maxAngle = 0.
+        for i in range(1, self._dimR - 1): #from 1 to dimR-2
+            currAngle = self._calculateAngle(vertexes[i-1], vertexes[i], vertexes[i+1])
+            if currAngle > maxAngle:
+                maxAngle = currAngle
+
+        return maxAngle
 
     def _calculateConstraints(self, spline):
         """
