@@ -17,7 +17,7 @@ class Path:
     
     def __init__(self, initialVertexes, scene, optimizeVal):
         """
-        optimizeVal can be: 'length', 'meanAngle', 'maxAngle', 'meanCurvature', 'maxCurvature'
+        optimizeVal can be: 'length', 'meanAngle', 'maxAngle', 'meanCurvature', 'maxCurvature', 'maxDerivative2'
         """
         self._vertexes = initialVertexes
         self._scene = scene
@@ -27,7 +27,7 @@ class Path:
         self._numPointsSpline = self._numPointsSplineMultiplier * self._dimR
         self._spline, splineD1, splineD2 = self._splinePoints(self._vertexes)
         self._vlambda = self._initialVlambda 
-        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentMaxAngle, self._meanCurvature, self._maxCurvature, self._currentConstraints = self._initializePathEnergy(self._vertexes, self._spline, splineD1, splineD2, self._vlambda)
+        self._currentEnergy, self._currentLength, self._currentMeanAngle, self._currentMaxAngle, self._meanCurvature, self._maxCurvature, self._maxDerivative2, self._currentConstraints = self._initializePathEnergy(self._vertexes, self._spline, splineD1, splineD2, self._vlambda)
 
     @property
     def vertexes(self):
@@ -60,6 +60,10 @@ class Path:
     @property
     def maxCurvature(self):
         return self._currentMaxCurvature
+    
+    @property
+    def maxDerivative2(self):
+        return self._currentMaxDerivative2
     
     @property
     def constraints(self):
@@ -129,7 +133,7 @@ class Path:
 #                newVertexes[movedV][1] = newVertex[1]
                             
                 
-            newSpline,newEnergy,newLength,newMeanAngle,newMaxAngle,newMeanCurvature,newMaxCurvature,newConstraints = self._calculatePathEnergyVertex(newVertexes, movedV)
+            newSpline,newEnergy,newLength,newMeanAngle,newMaxAngle,newMeanCurvature,newMaxCurvature,newMaxDerivative2,newConstraints = self._calculatePathEnergyVertex(newVertexes, movedV)
 
             #attention, different formula from above
             if (newEnergy < self._currentEnergy) or (math.exp(-(newEnergy-self._currentEnergy)/temperature) >= random.random()):
@@ -141,6 +145,7 @@ class Path:
                 self._currentMaxAngle = newMaxAngle
                 self._currentMeanCurvature = newMeanCurvature
                 self._currentMaxCurvature = newMaxCurvature
+                self._currentMaxDerivative2 = newMaxDerivative2
                 self._currentConstraints = newConstraints
 
     def _truncGauss(self, mu, sigma, bottom, top):
@@ -167,6 +172,7 @@ class Path:
 
         meanCurvature = self._calculateMeanCurvature(spline, splineD1, splineD2)
         maxCurvature = self._calculateMaxCurvature(spline, splineD1, splineD2)
+        maxDerivative2 = self._calculateMaxDerivative2(splineD2)
         
         constraints = self._calculateConstraints(spline)
 
@@ -180,8 +186,10 @@ class Path:
             energy = meanCurvature + vlambda * constraints
         elif self._optimizeVal == 'maxCurvature':
             energy = maxCurvature + vlambda * constraints
+        elif self._optimizeVal == 'maxDerivative2':
+            energy = maxDerivative2 + vlambda * constraints
 
-        return (energy, length, meanAngle, maxAngle, meanCurvature, maxCurvature, constraints)
+        return (energy, length, meanAngle, maxAngle, meanCurvature, maxCurvature, maxDerivative2, constraints)
                 
 
     def _calculatePathEnergyLambda(self, vlambda):
@@ -202,6 +210,7 @@ class Path:
         maxAngle = 0.
         meanCurvature = 0.
         maxCurvature = 0.
+        maxDerivative2 = 0.
         if self._optimizeVal == 'length':
             length = self._calculateTotalLength(vertexes, movedV)
             energy = length + self._vlambda * constraints
@@ -217,8 +226,11 @@ class Path:
         elif self._optimizeVal == 'maxCurvature':
             maxCurvature = self._calculateMaxCurvature(spline, splineD1, splineD2)
             energy = maxCurvature + self._vlambda * constraints
+        elif self._optimizeVal == 'maxDerivative2':
+            maxDerivative2 = self._calculateMaxDerivative2(splineD2)
+            energy = maxDerivative2 + self._vlambda * constraints
             
-        return (spline, energy, length, meanAngle, maxAngle, meanCurvature, maxCurvature, constraints)
+        return (spline, energy, length, meanAngle, maxAngle, meanCurvature, maxCurvature, maxDerivative2, constraints)
 
     def _calculateTotalLength(self, vertexes, movedV):
         length = self._currentLength
@@ -275,6 +287,15 @@ class Path:
                 maxCurvature = currCurv
 
         return maxCurvature
+
+    def _calculateMaxDerivative2(self, splineD2):
+        maxDerivative2 = 0.
+        for i in range(0, len(splineD2)):
+            currDer2 = np.linalg.norm(splineD2[i])
+            if currDer2 > maxDerivative2:
+                maxDerivative2 = currDer2
+
+        return maxDerivative2
 
 
     def _calculateConstraints(self, spline):
