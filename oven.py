@@ -46,6 +46,7 @@ class Oven:
         self._textMaxAng = axes.text(0.52, 0.95, '', transform=axes.transAxes)
         self._textMeanCurv = axes.text(0.52, 0.95, '', transform=axes.transAxes)
         self._textMaxCurv = axes.text(0.52, 0.95, '', transform=axes.transAxes)
+        self._textMaxCurvLength = axes.text(0.52, 0.95, '', transform=axes.transAxes)
         self._textMaxDer2 = axes.text(0.52, 0.95, '', transform=axes.transAxes)
         self._textCos = axes.text(0.52, 0.90, '', transform=axes.transAxes)
         self._path = path
@@ -61,6 +62,8 @@ class Oven:
             self._textMeanCurv.set_visible(False)
         if path.optimizeVal != 'maxCurvature':
             self._textMaxCurv.set_visible(False)
+        if path.optimizeVal != 'maxCurvatureLength':
+            self._textMaxCurvLength.set_visible(False)
         if path.optimizeVal != 'maxDerivative2':
             self._textMaxDer2.set_visible(False)
 
@@ -75,11 +78,12 @@ class Oven:
         self._textMaxAng.set_text('')
         self._textMeanCurv.set_text('')
         self._textMaxCurv.set_text('')
+        self._textMaxCurvLength.set_text('')
         self._textMaxDer2.set_text('')
         self._textCos.set_text('')
         self._textLam.set_text('')
         
-        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textMeanAng, self._textMaxAng, self._textMeanCurv, self._textMaxCurv, self._textMaxDer2, self._textCos, self._textLam
+        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textMeanAng, self._textMaxAng, self._textMeanCurv, self._textMaxCurv, self._textMaxCurvLength, self._textMaxDer2, self._textCos, self._textLam
         
     def _animate(self, i, neighbourMode):
         if not self._pauseAnimation:
@@ -95,13 +99,14 @@ class Oven:
             self._textMaxAng.set_text('Max Ang.  = {}'.format(self._path.maxAngle))
             self._textMeanCurv.set_text('Mean Curv.  = {}'.format(self._path.meanCurvature))
             self._textMaxCurv.set_text('Max Curv.  = {}'.format(self._path.maxCurvature))
+            self._textMaxCurvLength.set_text('MaxCurv/length.  = {}'.format(self._path.maxCurvatureLength))
             self._textMaxDer2.set_text('Max Der.2  = {}'.format(self._path.maxDerivative2))
             self._textCos.set_text('Costr. = {}'.format(self._path.constraints))
             self._textLam.set_text('Lambda = {}'.format(self._path.vlambda))
 
             self._temperature = self._temperature * self._warmingRatio
 
-        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textMeanAng, self._textMaxAng, self._textMeanCurv, self._textMaxCurv, self._textMaxDer2, self._textCos, self._textLam
+        return self._aniLine, self._aniSpline, self._textTemp, self._textEner, self._textLen, self._textMeanAng, self._textMaxAng, self._textMeanCurv, self._textMaxCurv, self._textMaxCurvLength, self._textMaxDer2, self._textCos, self._textLam
 
     def _onClick(self, event):
         if event.key == ' ':
